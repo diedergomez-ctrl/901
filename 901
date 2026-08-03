@@ -1,0 +1,55 @@
+--[[
+    KLO - SAFE LITE VERSION
+--]]
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+-- 🛡️ Anti-Kick
+pcall(function()
+    hookfunction(game.Players.LocalPlayer.Kick, function() return nil end)
+end)
+
+-- 📦 Inventory ESP Function
+local function applyESP(player)
+    if player == LocalPlayer or not player.Character then return end
+    local head = player.Character:FindFirstChild("Head")
+    if not head then return end
+
+    local gui = head:FindFirstChild("SimpleESP") or Instance.new("BillboardGui")
+    gui.Name = "SimpleESP"
+    gui.Size = UDim2.new(0, 150, 0, 30)
+    gui.StudsOffset = Vector3.new(0, 2, 0)
+    gui.AlwaysOnTop = true
+    gui.Parent = head
+
+    local txt = gui:FindFirstChild("Txt") or Instance.new("TextLabel", gui)
+    txt.Name = "Txt"
+    txt.Size = UDim2.new(1, 0, 1, 0)
+    txt.BackgroundTransparency = 1
+    txt.TextColor3 = Color3.fromRGB(255, 215, 0)
+    txt.Font = Enum.Font.GothamBold
+    txt.TextSize = 12
+
+    local items = {}
+    for _, tool in ipairs(player.Character:GetChildren()) do
+        if tool:IsA("Tool") then table.insert(items, tool.Name) end
+    end
+    if player:FindFirstChild("Backpack") then
+        for _, tool in ipairs(player.Backpack:GetChildren()) do
+            if tool:IsA("Tool") then table.insert(items, tool.Name) end
+        end
+    end
+
+    txt.Text = player.Name .. "\n[ " .. (#items > 0 and table.concat(items, ", ") or "لا يوجد لوت") .. " ]"
+end
+
+-- 🎯 Render Loop
+RunService.RenderStepped:Connect(function()
+    for _, p in ipairs(Players:GetPlayers()) do
+        applyESP(p)
+    end
+end)
