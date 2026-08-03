@@ -1,20 +1,21 @@
 --[[
     ==================================================
-    🔥 901 SYSTEM - UNDETECTED ADONIS BYPASS (2026)
+    🔥 901 SYSTEM - UNDETECTED V14 (BYPASS ADONIS)
     Developed Exclusively for: 901
-    No Hooking / Pure GUI & Stealth ESP
+    Features: Floating Toggle Circle, Safe Assist, Item ESP
     ==================================================
 --]]
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
 ---------------------------------------------------------
--- 🎨 GUI CREATION (NEON THEME - 901)
+-- 🎨 GUI CREATION (NEON THEME + FLOATING TOGGLE)
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "System901UI"
@@ -28,19 +29,43 @@ pcall(function()
     end
 end)
 
+-- 🔘 Floating Toggle Circle Button (زر الدائرة للفتح والإغلاق)
+local ToggleCircle = Instance.new("TextButton")
+ToggleCircle.Size = UDim2.new(0, 50, 0, 50)
+ToggleCircle.Position = UDim2.new(0, 15, 0.4, 0)
+ToggleCircle.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+ToggleCircle.Text = "901"
+ToggleCircle.TextColor3 = Color3.fromRGB(180, 100, 255)
+ToggleCircle.Font = Enum.Font.GothamBold
+ToggleCircle.TextSize = 14
+ToggleCircle.Active = true
+ToggleCircle.Draggable = true
+ToggleCircle.Parent = ScreenGui
+
+Instance.new("UICorner", ToggleCircle).CornerRadius = UDim.new(1, 0) -- يجعل الزر دائرياً بالكامل
+local CircleGlow = Instance.new("UIStroke", ToggleCircle)
+CircleGlow.Color = Color3.fromRGB(138, 43, 226)
+CircleGlow.Thickness = 2
+
 -- Main Frame
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 520, 0, 340)
-MainFrame.Position = UDim2.new(0.5, -260, 0.5, -170)
+MainFrame.Size = UDim2.new(0, 500, 0, 330)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -165)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 MainFrame.Active = true
 MainFrame.Draggable = true
+MainFrame.Visible = true
 MainFrame.Parent = ScreenGui
 
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 local MainGlow = Instance.new("UIStroke", MainFrame)
 MainGlow.Color = Color3.fromRGB(138, 43, 226)
 MainGlow.Thickness = 2.5
+
+-- زر الدائرة لفتح وإغلاق القائمة
+ToggleCircle.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
 
 -- Top Header Bar
 local Header = Instance.new("Frame")
@@ -56,7 +81,7 @@ Title.BackgroundTransparency = 1
 Title.Text = "⚡ 901 SYSTEM | MENU"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 16
+Title.TextSize = 15
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Header
 
@@ -71,9 +96,9 @@ Rights.TextSize = 13
 Rights.TextXAlignment = Enum.TextXAlignment.Right
 Rights.Parent = Header
 
--- Sidebar
+-- Sidebar Navigation
 local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 130, 1, -55)
+Sidebar.Size = UDim2.new(0, 125, 1, -55)
 Sidebar.Position = UDim2.new(0, 5, 0, 50)
 Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
 Sidebar.Parent = MainFrame
@@ -81,8 +106,8 @@ Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 8)
 
 -- Content Area
 local Content = Instance.new("Frame")
-Content.Size = UDim2.new(1, -145, 1, -55)
-Content.Position = UDim2.new(0, 140, 0, 50)
+Content.Size = UDim2.new(1, -140, 1, -55)
+Content.Position = UDim2.new(0, 135, 0, 50)
 Content.BackgroundTransparency = 1
 Content.Parent = MainFrame
 
@@ -120,7 +145,7 @@ local function createTabBtn(text, pageName, posY)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 12
+    btn.TextSize = 11
     btn.Parent = Sidebar
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
 
@@ -130,11 +155,11 @@ local function createTabBtn(text, pageName, posY)
     end)
 end
 
-createTabBtn("🎯 السايلنت ايم", "Aim", 10)
+createTabBtn("🎯 مساعد الايم", "Aim", 10)
 createTabBtn("📡 الرادار واللوت", "Radar", 50)
 createTabBtn("👤 الشخصية", "Player", 90)
 
--- Toggles
+-- Toggles Generator
 local function createToggle(parent, text, default, callback)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -10, 0, 38)
@@ -149,7 +174,7 @@ local function createToggle(parent, text, default, callback)
     lbl.Text = text
     lbl.TextColor3 = Color3.fromRGB(230, 230, 230)
     lbl.Font = Enum.Font.Gotham
-    lbl.TextSize = 12
+    lbl.TextSize = 11
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.Parent = frame
 
@@ -176,9 +201,9 @@ end
 ---------------------------------------------------------
 -- ⚙️ FEATURES IMPLEMENTATION
 ---------------------------------------------------------
-local SilentAim = false
+local SafeAim = false
 local FovEnabled = false
-local FovRadius = 140
+local FovRadius = 120
 
 local FovCircle = Drawing.new("Circle")
 FovCircle.Color = Color3.fromRGB(138, 43, 226)
@@ -186,7 +211,7 @@ FovCircle.Thickness = 1.5
 FovCircle.NumSides = 60
 FovCircle.Visible = false
 
-createToggle(pageAim, "تفعيل السايلنت ايم (Silent Aim)", false, function(s) SilentAim = s end)
+createToggle(pageAim, "تفعيل مساعد الأيم (Safe Aim Assist)", false, function(s) SafeAim = s end)
 createToggle(pageAim, "إظهار دائرة الـ FOV", false, function(s) FovEnabled = s; FovCircle.Visible = s end)
 
 local ItemESP = true
@@ -195,22 +220,23 @@ local Highlights = false
 createToggle(pageRadar, "كشف لوت الناس (Item ESP)", true, function(s) ItemESP = s end)
 createToggle(pageRadar, "تحديد الخصوم باللون النيون (Highlight)", false, function(s) Highlights = s end)
 
-createToggle(pageChar, "سرعة عالية (Speed Hack)", false, function(s)
+createToggle(pageChar, "سرعة حركة آمنة", false, function(s)
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = s and 28 or 16
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = s and 22 or 16
     end
 end)
 
 ---------------------------------------------------------
--- 🔄 RENDER LOOP (SAFE FROM ADONIS)
+-- 🔄 UNDETECTED LOOP
 ---------------------------------------------------------
 RunService.RenderStepped:Connect(function()
     FovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
     FovCircle.Radius = FovRadius
 
-    if SilentAim then
+    -- Safe Camera Assist (بدون قفزات مفاجئة تسبب طرد)
+    if SafeAim then
         local target = nil
-        local maxDist = FovEnabled and FovRadius or 500
+        local maxDist = FovEnabled and FovRadius or 300
 
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
@@ -226,7 +252,8 @@ RunService.RenderStepped:Connect(function()
         end
 
         if target then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
+            -- توجيه ناعم جداً لا يكشفه نظام Adonis
+            Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, target.Position), 0.15)
         end
     end
 
