@@ -1,12 +1,11 @@
 -- ============================================================
--- KLO 901 TABBED SYSTEM - CL STREET EDITION
--- Features: True Silent Aim (Magic Bullets) + Clean Tabbed UI
+-- KLO 901 MODERN DARK HUB UI - EXACT REPLICA EDITION
+-- Rights: 901 | True Silent Aim + Advanced Radar ESP Engine
 -- ============================================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
+LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local Camera = workspace.CurrentCamera
 
@@ -25,11 +24,11 @@ local Settings = {
 
 -- 🎯 [TRUE SILENT AIM ENGINE - MAGIC BULLETS]
 local FOVCircle = Drawing.new("Circle")
-FOVCircle.Color = Color3.fromRGB(0, 210, 255)
-FOVCircle.Thickness = 1.5
+FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+FOVCircle.Thickness = 1.2
 FOVCircle.NumSides = 80
 FOVCircle.Filled = false
-FOVCircle.Transparency = 0.8
+FOVCircle.Transparency = 0.6
 FOVCircle.Visible = false
 
 local function getClosestTarget()
@@ -58,7 +57,7 @@ local function getClosestTarget()
     return closestPlayer
 end
 
--- Hooking Mouse Index for Magic Bullets (Silent Aim True Logic)
+-- Hooking Mouse Index for Magic Bullets (Silent Aim Logic)
 local gmt = getrawmetatable(game)
 local oldIndex = gmt.__index
 setreadonly(gmt, false)
@@ -107,7 +106,7 @@ local function isPlayerInCover(targetChar)
     return workspace:Raycast(origin, targetPos - origin, rayParams) ~= nil
 end
 
--- ESP Drawings Storage
+-- ESP Storage
 local ESP_Cache = {}
 local function createESP(player)
     local drawings = {Text = Drawing.new("Text"), Box = Drawing.new("Square")}
@@ -129,7 +128,7 @@ Players.PlayerRemoving:Connect(function(p)
     end
 end)
 
--- 🚀 [RENDER LOOP]
+-- Render Loop
 RunService.RenderStepped:Connect(function()
     FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
     FOVCircle.Radius = Settings.FOVRadius
@@ -176,141 +175,213 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- 🖥️ [TABBED MENU GUI - 901 DESIGN]
+-- 🖥️ [EXACT UI REPLICA BUILDER]
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "KLO_901_Menu"
+Gui.Name = "KLO_901_UltraUI"
 Gui.ResetOnSpawn = false
 Gui.Parent = (gethui and gethui()) or game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 480, 0, 320)
-Main.Position = UDim2.new(0.5, -240, 0.3, 0)
-Main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+Main.Size = UDim2.new(0, 310, 0, 460)
+Main.Position = UDim2.new(0.7, 0, 0.2, 0)
+Main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+Main.BackgroundTransparency = 0.1
 Main.Active = true
 Main.Draggable = true
 Main.Parent = Gui
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 14)
 
--- Side Bar (Tabs Container)
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 130, 1, 0)
-Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
-Sidebar.Parent = Main
-Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 8)
+local Stroke = Instance.new("UIStroke", Main)
+Stroke.Color = Color3.fromRGB(45, 45, 55)
+Stroke.Thickness = 1.2
+
+-- Header Banner
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 50)
+Header.BackgroundTransparency = 1
+Header.Parent = Main
+
+local Icon = Instance.new("TextLabel")
+Icon.Size = UDim2.new(0, 30, 0, 30)
+Icon.Position = UDim2.new(0, 15, 0, 10)
+Icon.Text = "👑"
+Icon.TextSize = 18
+Icon.BackgroundTransparency = 1
+Icon.Parent = Header
 
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Text = "KLO 901 VIP"
-Title.TextColor3 = Color3.fromRGB(0, 200, 255)
+Title.Size = UDim2.new(1, -60, 0, 20)
+Title.Position = UDim2.new(0, 50, 0, 10)
+Title.Text = "KLO 901 | PVP"
+Title.TextColor3 = Color3.fromRGB(240, 240, 240)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 14
+Title.TextSize = 13
+Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.BackgroundTransparency = 1
-Title.Parent = Sidebar
+Title.Parent = Header
+
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1, -60, 0, 15)
+SubTitle.Position = UDim2.new(0, 50, 0, 28)
+SubTitle.Text = "[901] - Roblox Script"
+SubTitle.TextColor3 = Color3.fromRGB(130, 130, 145)
+SubTitle.Font = Enum.Font.Gotham
+SubTitle.TextSize = 10
+SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+SubTitle.BackgroundTransparency = 1
+SubTitle.Parent = Header
+
+-- Search Bar
+local SearchBox = Instance.new("Frame")
+SearchBox.Size = UDim2.new(1, -26, 0, 32)
+SearchBox.Position = UDim2.new(0, 13, 0, 55)
+SearchBox.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
+SearchBox.Parent = Main
+Instance.new("UICorner", SearchBox).CornerRadius = UDim.new(0, 8)
+
+local SearchIcon = Instance.new("TextLabel")
+SearchIcon.Size = UDim2.new(0, 25, 1, 0)
+SearchIcon.Position = UDim2.new(0, 8, 0, 0)
+SearchIcon.Text = "🔍"
+SearchIcon.TextSize = 11
+SearchIcon.BackgroundTransparency = 1
+SearchIcon.Parent = SearchBox
+
+local SearchInput = Instance.new("TextBox")
+SearchInput.Size = UDim2.new(1, -40, 1, 0)
+SearchInput.Position = UDim2.new(0, 33, 0, 0)
+SearchInput.PlaceholderText = "Search"
+SearchInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 135)
+SearchInput.Text = ""
+SearchInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchInput.Font = Enum.Font.Gotham
+SearchInput.TextSize = 11
+SearchInput.TextXAlignment = Enum.TextXAlignment.Left
+SearchInput.BackgroundTransparency = 1
+SearchInput.Parent = SearchBox
+
+-- Tab Buttons Container
+local TabsContainer = Instance.new("ScrollingFrame")
+TabsContainer.Size = UDim2.new(1, -26, 1, -100)
+TabsContainer.Position = UDim2.new(0, 13, 0, 95)
+TabsContainer.BackgroundTransparency = 1
+TabsContainer.ScrollBarThickness = 2
+TabsContainer.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 70)
+TabsContainer.Parent = Main
 
 local TabList = Instance.new("UIListLayout")
-TabList.Parent = Sidebar
-TabList.Padding = UDim.new(0, 5)
-TabList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabList.Parent = TabsContainer
+TabList.Padding = UDim.new(0, 6)
 
--- Content Display Area
-local Content = Instance.new("Frame")
-Content.Size = UDim2.new(1, -140, 1, -10)
-Content.Position = UDim2.new(0, 135, 0, 5)
-Content.BackgroundTransparency = 1
-Content.Parent = Main
+-- Pages Overlay Container
+local PageContent = Instance.new("Frame")
+PageContent.Size = UDim2.new(1, 0, 1, 0)
+PageContent.BackgroundTransparency = 1
+PageContent.Visible = false
+PageContent.Parent = Main
 
-local Tabs = {}
+local TabButtons = {}
 
-local function createTab(name)
-    local TabBtn = Instance.new("TextButton")
-    TabBtn.Size = UDim2.new(0, 115, 0, 32)
-    TabBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-    TabBtn.Text = name
-    TabBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
-    TabBtn.Font = Enum.Font.GothamMedium
-    TabBtn.TextSize = 12
-    TabBtn.Parent = Sidebar
-    Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 6)
+local function addTabButton(icon, name)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, 0, 0, 34)
+    Btn.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+    Btn.Text = ""
+    Btn.Parent = TabsContainer
+    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
 
-    local Page = Instance.new("ScrollingFrame")
-    Page.Size = UDim2.new(1, 0, 1, 0)
-    Page.BackgroundTransparency = 1
-    Page.Visible = false
-    Page.ScrollBarThickness = 2
-    Page.Parent = Content
+    local IconLbl = Instance.new("TextLabel")
+    IconLbl.Size = UDim2.new(0, 30, 1, 0)
+    IconLbl.Position = UDim2.new(0, 10, 0, 0)
+    IconLbl.Text = icon
+    IconLbl.TextSize = 12
+    IconLbl.BackgroundTransparency = 1
+    IconLbl.Parent = Btn
 
-    local PageLayout = Instance.new("UIListLayout")
-    PageLayout.Parent = Page
-    PageLayout.Padding = UDim.new(0, 8)
+    local TextLbl = Instance.new("TextLabel")
+    TextLbl.Size = UDim2.new(1, -45, 1, 0)
+    TextLbl.Position = UDim2.new(0, 40, 0, 0)
+    TextLbl.Text = name
+    TextLbl.TextColor3 = Color3.fromRGB(180, 180, 195)
+    TextLbl.Font = Enum.Font.GothamMedium
+    TextLbl.TextSize = 11
+    TextLbl.TextXAlignment = Enum.TextXAlignment.Left
+    TextLbl.BackgroundTransparency = 1
+    TextLbl.Parent = Btn
 
-    TabBtn.MouseButton1Click:Connect(function()
-        for _, t in pairs(Tabs) do
-            t.Page.Visible = false
-            t.Btn.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-            t.Btn.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Btn.MouseButton1Click:Connect(function()
+        for _, b in pairs(TabButtons) do
+            b.Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+            b.Text.TextColor3 = Color3.fromRGB(180, 180, 195)
         end
-        Page.Visible = true
-        TabBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 230)
-        TabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
+        TextLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
     end)
 
-    local tabObj = {Page = Page, Btn = TabBtn}
-    table.insert(Tabs, tabObj)
-    return Page
+    table.insert(TabButtons, {Frame = Btn, Text = TextLbl})
+    return Btn
 end
 
--- Helper for Toggles inside Pages
-local function addToggle(page, text, default, callback)
-    local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, -10, 0, 36)
-    Frame.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-    Frame.Parent = page
-    Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 6)
+-- Toggles Functions for Features
+local function createFeatureToggle(parent, titleText, default, callback)
+    local ToggleFrame = Instance.new("Frame")
+    ToggleFrame.Size = UDim2.new(1, 0, 0, 34)
+    ToggleFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 42)
+    ToggleFrame.Parent = parent
+    Instance.new("UICorner", ToggleFrame).CornerRadius = UDim.new(0, 6)
 
-    local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.7, 0, 1, 0)
-    Label.Position = UDim2.new(0, 10, 0, 0)
-    Label.Text = text
-    Label.TextColor3 = Color3.fromRGB(220, 220, 220)
-    Label.Font = Enum.Font.Gotham
-    Label.TextSize = 11
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-    Label.BackgroundTransparency = 1
-    Label.Parent = Frame
+    local Txt = Instance.new("TextLabel")
+    Txt.Size = UDim2.new(0.7, 0, 1, 0)
+    Txt.Position = UDim2.new(0, 10, 0, 0)
+    Txt.Text = titleText
+    Txt.TextColor3 = Color3.fromRGB(220, 220, 230)
+    Txt.Font = Enum.Font.Gotham
+    Txt.TextSize = 10
+    Txt.TextXAlignment = Enum.TextXAlignment.Left
+    Txt.BackgroundTransparency = 1
+    Txt.Parent = ToggleFrame
 
-    local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(0, 40, 0, 20)
-    Btn.Position = UDim2.new(1, -48, 0.5, -10)
-    Btn.BackgroundColor3 = default and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(50, 50, 60)
-    Btn.Text = default and "ON" or "OFF"
-    Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Btn.Font = Enum.Font.GothamBold
-    Btn.TextSize = 9
-    Btn.Parent = Frame
-    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 4)
+    local Switch = Instance.new("TextButton")
+    Switch.Size = UDim2.new(0, 36, 0, 18)
+    Switch.Position = UDim2.new(1, -42, 0.5, -9)
+    Switch.BackgroundColor3 = default and Color3.fromRGB(0, 180, 230) or Color3.fromRGB(50, 50, 65)
+    Switch.Text = ""
+    Switch.Parent = ToggleFrame
+    Instance.new("UICorner", Switch).CornerRadius = UDim.new(1, 0)
 
     local state = default
-    Btn.MouseButton1Click:Connect(function()
+    Switch.MouseButton1Click:Connect(function()
         state = not state
-        Btn.Text = state and "ON" or "OFF"
-        Btn.BackgroundColor3 = state and Color3.fromRGB(0, 200, 255) or Color3.fromRGB(50, 50, 60)
+        Switch.BackgroundColor3 = state and Color3.fromRGB(0, 180, 230) or Color3.fromRGB(50, 50, 65)
         callback(state)
     end)
 end
 
--- 📌 [CREATING TABS & FEATURES]
-local CombatPage = createTab("⚔️ Combat")
-local EspPage = createTab("👁️ ESP Radar")
-local MiscPage = createTab("⚙️ Misc")
+-- Creating Tabs matching Image
+addTabButton("♟️", "General")
+local CombatBtn = addTabButton("⚔️", "Combat")
+addTabButton("🎯", "Weapon Mod")
+addTabButton("🎨", "Cosmetic")
+local EspBtn = addTabButton("👁️", "Esp")
+addTabButton("🚗", "Vehicle")
+addTabButton("⚙️", "Misc")
+addTabButton("🖥️", "Server")
+addTabButton("⚙️", "Config")
 
--- Combat Tab Controls
-addToggle(CombatPage, "Silent Aim (طلق سحري بدون تحريك كاميرا)", Settings.SilentAim, function(s) Settings.SilentAim = s end)
-addToggle(CombatPage, "Show FOV Circle (دائرة الاصطياد)", Settings.ShowFOV, function(s) Settings.ShowFOV = s end)
+-- Features Container Popup
+local FeaturesWindow = Instance.new("Frame")
+FeaturesWindow.Size = UDim2.new(0, 200, 0, 220)
+FeaturesWindow.Position = UDim2.new(0, -210, 0, 50)
+FeaturesWindow.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+FeaturesWindow.Parent = Main
+Instance.new("UICorner", FeaturesWindow).CornerRadius = UDim.new(0, 10)
+local FStroke = Instance.new("UIStroke", FeaturesWindow)
+FStroke.Color = Color3.fromRGB(45, 45, 55)
 
--- ESP Tab Controls
-addToggle(EspPage, "Enable ESP Radar (رادار الكفر والدم)", Settings.EspEnabled, function(s) Settings.EspEnabled = s end)
+local FList = Instance.new("UIListLayout")
+FList.Parent = FeaturesWindow
+FList.Padding = UDim.new(0, 6)
 
--- Default Open First Tab
-Tabs[1].Page.Visible = true
-Tabs[1].Btn.BackgroundColor3 = Color3.fromRGB(0, 180, 230)
-Tabs[1].Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+createFeatureToggle(FeaturesWindow, "Silent Aim (طلق سحري)", Settings.SilentAim, function(s) Settings.SilentAim = s end)
+createFeatureToggle(FeaturesWindow, "Show FOV (دائرة الاصطياد)", Settings.ShowFOV, function(s) Settings.ShowFOV = s end)
+createFeatureToggle(FeaturesWindow, "ESP Radar (رادار الكفر)", Settings.EspEnabled, function(s) Settings.EspEnabled = s end)
