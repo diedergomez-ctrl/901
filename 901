@@ -1,6 +1,6 @@
 -- ============================================================
--- KLO 901 VIP - FULLY WORKING & SAFE EDITION
--- Rights: 901 | PVP System
+-- KLO 901 VIP - FULLY INTEGRATED & UNDETECTED EDITION
+-- Rights: 901 | Includes MX2 Features
 -- ============================================================
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -20,7 +20,15 @@ local Settings = {
     FOVRadius = 130,
     ShowFOV = false,
     TargetPart = "Head",
-    EspEnabled = false
+    
+    EspEnabled = false,
+    EspBox = true,
+    EspName = true,
+    
+    WalkSpeed = 16,
+    JumpPower = 50,
+    FlyEnabled = false,
+    FlySpeed = 50
 }
 
 local Players = game:GetService("Players")
@@ -56,53 +64,97 @@ local function getClosestTarget()
     return closestPlayer
 end
 
--- 🎯 [COMBAT TAB]
+-- ⚔️ [COMBAT TAB]
 local CombatTab = Window:CreateTab("⚔️ Combat", 4483362458)
 
 CombatTab:CreateToggle({
-   Name = "Silent Aim (تفعيل التصويب السحري)",
+   Name = "Silent Aim (تصويب سحري آمن)",
    CurrentValue = false,
    Flag = "SilentAim",
-   Callback = function(Value)
-       Settings.SilentAim = Value
-   end,
+   Callback = function(Value) Settings.SilentAim = Value end,
+})
+
+CombatTab:CreateDropdown({
+   Name = "Target Part (مكان التصويب)",
+   Options = {"Head", "HumanoidRootPart"},
+   CurrentOption = "Head",
+   Flag = "TargetPart",
+   Callback = function(Option) Settings.TargetPart = Option[1] end,
 })
 
 CombatTab:CreateToggle({
-   Name = "Show FOV (إظهار دائرة التحديد)",
+   Name = "Show FOV (دائرة التحديد)",
    CurrentValue = false,
    Flag = "ShowFOV",
-   Callback = function(Value)
-       Settings.ShowFOV = Value
-   end,
+   Callback = function(Value) Settings.ShowFOV = Value end,
 })
 
 CombatTab:CreateSlider({
-   Name = "FOV Size (حجم دائرة التحديد)",
-   Range = {50, 400},
+   Name = "FOV Radius (حجم دائرة الاصطياد)",
+   Range = {50, 500},
    Increment = 10,
    Suffix = "px",
    CurrentValue = 130,
    Flag = "FOVSize",
-   Callback = function(Value)
-       Settings.FOVRadius = Value
-   end,
+   Callback = function(Value) Settings.FOVRadius = Value end,
 })
 
 -- 👁️ [ESP TAB]
-local EspTab = Window:CreateTab("👁️ ESP Radar", 4483362458)
+local EspTab = Window:CreateTab("👁️ ESP", 4483362458)
 
 EspTab:CreateToggle({
-   Name = "Enable ESP Radar (رادار الكفر والدم)",
+   Name = "Enable ESP Radar (تفعيل الرادار)",
    CurrentValue = false,
    Flag = "EspEnabled",
+   Callback = function(Value) Settings.EspEnabled = Value end,
+})
+
+-- 🏃 [PLAYER TAB]
+local PlayerTab = Window:CreateTab("🏃 Player", 4483362458)
+
+PlayerTab:CreateSlider({
+   Name = "WalkSpeed (سرعة المشي)",
+   Range = {16, 200},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "SpeedSlider",
    Callback = function(Value)
-       Settings.EspEnabled = Value
+       Settings.WalkSpeed = Value
+       if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+           LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+       end
+   end,
+})
+
+PlayerTab:CreateSlider({
+   Name = "JumpPower (قوة القفز)",
+   Range = {50, 300},
+   Increment = 5,
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "JumpSlider",
+   Callback = function(Value)
+       Settings.JumpPower = Value
+       if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+           LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = Value
+       end
    end,
 })
 
 -- ⚙️ [MISC TAB]
 local MiscTab = Window:CreateTab("⚙️ Misc", 4483362458)
+
+MiscTab:CreateButton({
+   Name = "Anti-AFK (منع الطرد للخمول)",
+   Callback = function()
+       local VirtualUser = game:GetService("VirtualUser")
+       LocalPlayer.Idled:Connect(function()
+           VirtualUser:CaptureController()
+           VirtualUser:ClickButton2(Vector2.new())
+       end)
+   end,
+})
 
 MiscTab:CreateButton({
    Name = "Rejoin Server (إعادة دخول)",
@@ -111,7 +163,7 @@ MiscTab:CreateButton({
    end,
 })
 
--- 🎨 [DRAWINGS ENGINE - FOV & ESP]
+-- 🎨 [DRAWINGS ENGINE & RENDER LOOP]
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(0, 200, 255)
 FOVCircle.Thickness = 1.5
@@ -151,15 +203,21 @@ local function isPlayerInCover(targetChar)
     return workspace:Raycast(origin, targetPos - origin, rayParams) ~= nil
 end
 
--- 🚀 [ACTIVE RENDER & AIM ENGINE]
 RunService.RenderStepped:Connect(function()
-    -- Update FOV Circle
+    -- FOV
     local mousePos = UserInputService:GetMouseLocation()
     FOVCircle.Position = mousePos
     FOVCircle.Radius = Settings.FOVRadius
     FOVCircle.Visible = Settings.ShowFOV
 
-    -- Safe Silent Aim Logic (Rotates Weapon Handle Safe)
+    -- Maintain WalkSpeed/JumpPower
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if Settings.WalkSpeed > 16 then hum.WalkSpeed = Settings.WalkSpeed end
+        if Settings.JumpPower > 50 then hum.JumpPower = Settings.JumpPower end
+    end
+
+    -- Silent Aim Engine
     if Settings.SilentAim then
         local target = getClosestTarget()
         if target and target.Character and target.Character:FindFirstChild(Settings.TargetPart) then
@@ -173,7 +231,7 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    -- Update ESP Radar
+    -- ESP Engine
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             if not ESP_Cache[player] then createESP(player) end
@@ -215,7 +273,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 Rayfield:Notify({
-   Title = "KLO 901 Loaded!",
+   Title = "KLO 901 VIP Loaded!",
    Content = "Welcome Abu Saif | KLO 901 VIP 👑",
    Duration = 5,
    Image = 4483362458,
