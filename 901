@@ -1,23 +1,19 @@
 --[[
     ==================================================
-    🔥 901 SYSTEM - REAL SILENT AIM (UNDETECTED)
+    🔥 901 SYSTEM - CLEAN & SAFE VISUALS (NO CRASH)
     Developed Exclusively for: 901
-    Features: True Silent Aim (No Cam Movement), Floating Toggle, Item ESP
+    Pure Visual GUI - Undetected 100%
     ==================================================
 --]]
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
 
----------------------------------------------------------
--- 🔘 FLOATING TOGGLE BUTTON (زر الدائرة للفتح والإغلاق)
----------------------------------------------------------
+-- GUI Setup
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "System901UI"
+ScreenGui.Name = "System901Visuals"
 ScreenGui.ResetOnSpawn = false
 
 pcall(function()
@@ -28,8 +24,9 @@ pcall(function()
     end
 end)
 
+-- 🔘 Floating Circle Button
 local ToggleCircle = Instance.new("TextButton")
-ToggleCircle.Size = UDim2.new(0, 52, 0, 52)
+ToggleCircle.Size = UDim2.new(0, 50, 0, 50)
 ToggleCircle.Position = UDim2.new(0, 15, 0.4, 0)
 ToggleCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 ToggleCircle.Text = "901"
@@ -45,12 +42,10 @@ local CircleGlow = Instance.new("UIStroke", ToggleCircle)
 CircleGlow.Color = Color3.fromRGB(138, 43, 226)
 CircleGlow.Thickness = 2.5
 
----------------------------------------------------------
--- 🎨 MAIN MENU GUI
----------------------------------------------------------
+-- Main Frame
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 480, 0, 320)
-MainFrame.Position = UDim2.new(0.5, -240, 0.5, -160)
+MainFrame.Size = UDim2.new(0, 420, 0, 260)
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -130)
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -68,7 +63,7 @@ end)
 
 -- Header Bar
 local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 45)
+Header.Size = UDim2.new(1, 0, 0, 40)
 Header.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
 Header.Parent = MainFrame
 Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
@@ -77,113 +72,47 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(0, 200, 1, 0)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "⚡ 901 SYSTEM | MENU"
+Title.Text = "⚡ 901 SYSTEM | VISUALS"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 15
+Title.TextSize = 14
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Header
 
-local Rights = Instance.new("TextLabel")
-Rights.Size = UDim2.new(0, 150, 1, 0)
-Rights.Position = UDim2.new(1, -165, 0, 0)
-Rights.BackgroundTransparency = 1
-Rights.Text = "حقوق 901 "
-Rights.TextColor3 = Color3.fromRGB(180, 100, 255)
-Rights.Font = Enum.Font.GothamBold
-Rights.TextSize = 13
-Rights.TextXAlignment = Enum.TextXAlignment.Right
-Rights.Parent = Header
+local Container = Instance.new("Frame")
+Container.Size = UDim2.new(1, -20, 1, -55)
+Container.Position = UDim2.new(0, 10, 0, 48)
+Container.BackgroundTransparency = 1
+Container.Parent = MainFrame
 
--- Sidebar Navigation
-local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 120, 1, -55)
-Sidebar.Position = UDim2.new(0, 5, 0, 50)
-Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
-Sidebar.Parent = MainFrame
-Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 8)
-
-local Content = Instance.new("Frame")
-Content.Size = UDim2.new(1, -135, 1, -55)
-Content.Position = UDim2.new(0, 130, 0, 50)
-Content.BackgroundTransparency = 1
-Content.Parent = MainFrame
-
-local pages = {}
-local function createPage(name)
-    local page = Instance.new("ScrollingFrame")
-    page.Size = UDim2.new(1, 0, 1, 0)
-    page.BackgroundTransparency = 1
-    page.ScrollBarThickness = 2
-    page.ScrollBarImageColor3 = Color3.fromRGB(138, 43, 226)
-    page.Visible = false
-    page.Parent = Content
-    
-    local layout = Instance.new("UIListLayout")
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 8)
-    layout.Parent = page
-    
-    pages[name] = page
-    return page
-end
-
-local pageAim = createPage("Aim")
-local pageRadar = createPage("Radar")
-local pageChar = createPage("Player")
-
-pageAim.Visible = true
-
-local function createTabBtn(text, pageName, posY)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -10, 0, 35)
-    btn.Position = UDim2.new(0, 5, 0, posY)
-    btn.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
-    btn.Text = text
-    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
-    btn.Parent = Sidebar
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-
-    btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(pages) do p.Visible = false end
-        pages[pageName].Visible = true
-    end)
-end
-
-createTabBtn("🎯 السايلنت ايم", "Aim", 10)
-createTabBtn("📡 الرادار واللوت", "Radar", 50)
-createTabBtn("👤 الشخصية", "Player", 90)
-
-local function createToggle(parent, text, default, callback)
+local function createToggle(text, default, callback)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, -10, 0, 38)
+    frame.Size = UDim2.new(1, 0, 0, 42)
     frame.BackgroundColor3 = Color3.fromRGB(25, 25, 33)
-    frame.Parent = parent
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
+    frame.Parent = Container
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
 
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(0.7, 0, 1, 0)
-    lbl.Position = UDim2.new(0, 10, 0, 0)
+    lbl.Position = UDim2.new(0, 12, 0, 0)
     lbl.BackgroundTransparency = 1
     lbl.Text = text
     lbl.TextColor3 = Color3.fromRGB(230, 230, 230)
-    lbl.Font = Enum.Font.Gotham
-    lbl.TextSize = 11
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 12
     lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.Parent = frame
 
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 45, 0, 22)
-    btn.Position = UDim2.new(1, -55, 0.5, -11)
+    btn.Size = UDim2.new(0, 50, 0, 24)
+    btn.Position = UDim2.new(1, -60, 0.5, -12)
     btn.BackgroundColor3 = default and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(45, 45, 55)
     btn.Text = default and "ON" or "OFF"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 10
+    btn.TextSize = 11
     btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 11)
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
 
     local state = default
     btn.MouseButton1Click:Connect(function()
@@ -194,79 +123,14 @@ local function createToggle(parent, text, default, callback)
     end)
 end
 
----------------------------------------------------------
--- ⚙️ REAL SILENT AIM ENGINE (NO CAMERA MOVEMENT)
----------------------------------------------------------
-local SilentAimEnabled = false
-local FovEnabled = false
-local FovRadius = 130
-
-local FovCircle = Drawing.new("Circle")
-FovCircle.Color = Color3.fromRGB(138, 43, 226)
-FovCircle.Thickness = 1.5
-FovCircle.NumSides = 60
-FovCircle.Visible = false
-
-createToggle(pageAim, "تفعيل السايلنت ايم الحقيقي", false, function(s) SilentAimEnabled = s end)
-createToggle(pageAim, "إظهار دائرة الـ FOV", false, function(s) FovEnabled = s; FovCircle.Visible = s end)
-
 local ItemESP = true
-local Highlights = false
+local Highlights = true
 
-createToggle(pageRadar, "كشف لوت الناس (Item ESP)", true, function(s) ItemESP = s end)
-createToggle(pageRadar, "تحديد الخصوم باللون النيون (Highlight)", false, function(s) Highlights = s end)
+createToggle("كشف لوت وشنط الخصوم (Item ESP)", true, function(s) ItemESP = s end)
+createToggle("تحديد أماكن اللاعبين (Neon Highlight)", true, function(s) Highlights = s end)
 
-createToggle(pageChar, "سرعة حركة آمنة", false, function(s)
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = s and 22 or 16
-    end
-end)
-
--- Find Closest Target inside FOV
-local function getClosestTarget()
-    local target = nil
-    local maxDist = FovEnabled and FovRadius or 500
-
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChildOfClass("Humanoid") then
-            if p.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
-                local head = p.Character.Head
-                local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
-                if onScreen then
-                    local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
-                    if dist < maxDist then
-                        maxDist = dist
-                        target = head
-                    end
-                end
-            end
-        end
-    end
-    return target
-end
-
--- Hook Mouse/Raycast Indexing for Silent Aim (Cam completely STILL)
-local gmt = getrawmetatable(game)
-setreadonly(gmt, false)
-local oldIndex = gmt.__index
-
-gmt.__index = newcclosure(function(self, index)
-    if SilentAimEnabled and index == "Hit" and not checkcaller() then
-        local targetHead = getClosestTarget()
-        if targetHead then
-            return targetHead.CFrame
-        end
-    end
-    return oldIndex(self, index)
-end)
-
----------------------------------------------------------
--- 🔄 VISUAL RENDER LOOP
----------------------------------------------------------
+-- Safe Loop (No Memory Hooking)
 RunService.RenderStepped:Connect(function()
-    FovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    FovCircle.Radius = FovRadius
-
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
             -- Highlight
@@ -281,7 +145,7 @@ RunService.RenderStepped:Connect(function()
                 hl:Destroy()
             end
 
-            -- Inventory ESP
+            -- Item ESP
             local head = p.Character.Head
             local bill = head:FindFirstChild("Bill901")
             if ItemESP then
