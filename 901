@@ -1,29 +1,20 @@
 --[[
     ==================================================
-    🔥 901 SYSTEM - ULTIMATE CUSTOM MENU (2026 EDITION)
+    🔥 901 SYSTEM - UNDETECTED ADONIS BYPASS (2026)
     Developed Exclusively for: 901
-    Fully Undetected & Smooth UI Engine
+    No Hooking / Pure GUI & Stealth ESP
     ==================================================
 --]]
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
 ---------------------------------------------------------
--- 🛡️ ANTI-KICK & PROTECTION ENGINE
----------------------------------------------------------
-pcall(function()
-    hookfunction(LocalPlayer.Kick, function() return nil end)
-end)
-
----------------------------------------------------------
--- 🎨 GUI CREATION (ULTIMATE NEON THEME - 901)
+-- 🎨 GUI CREATION (NEON THEME - 901)
 ---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "System901UI"
@@ -48,7 +39,7 @@ MainFrame.Parent = ScreenGui
 
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 local MainGlow = Instance.new("UIStroke", MainFrame)
-MainGlow.Color = Color3.fromRGB(138, 43, 226) -- Blue-Purple Neon
+MainGlow.Color = Color3.fromRGB(138, 43, 226)
 MainGlow.Thickness = 2.5
 
 -- Top Header Bar
@@ -80,7 +71,7 @@ Rights.TextSize = 13
 Rights.TextXAlignment = Enum.TextXAlignment.Right
 Rights.Parent = Header
 
--- Sidebar Navigation Tabs
+-- Sidebar
 local Sidebar = Instance.new("Frame")
 Sidebar.Size = UDim2.new(0, 130, 1, -55)
 Sidebar.Position = UDim2.new(0, 5, 0, 50)
@@ -119,9 +110,8 @@ local pageAim = createPage("Aim")
 local pageRadar = createPage("Radar")
 local pageChar = createPage("Player")
 
-pageAim.Visible = true -- Default Page
+pageAim.Visible = true
 
--- Tab Button Generator
 local function createTabBtn(text, pageName, posY)
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, -10, 0, 35)
@@ -144,9 +134,7 @@ createTabBtn("🎯 السايلنت ايم", "Aim", 10)
 createTabBtn("📡 الرادار واللوت", "Radar", 50)
 createTabBtn("👤 الشخصية", "Player", 90)
 
----------------------------------------------------------
--- 🧩 COMPONENTS GENERATOR (TOGGLES & SLIDERS)
----------------------------------------------------------
+-- Toggles
 local function createToggle(parent, text, default, callback)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, -10, 0, 38)
@@ -188,11 +176,9 @@ end
 ---------------------------------------------------------
 -- ⚙️ FEATURES IMPLEMENTATION
 ---------------------------------------------------------
-
--- 1. Silent Aim Section
 local SilentAim = false
 local FovEnabled = false
-local FovRadius = 150
+local FovRadius = 140
 
 local FovCircle = Drawing.new("Circle")
 FovCircle.Color = Color3.fromRGB(138, 43, 226)
@@ -203,35 +189,28 @@ FovCircle.Visible = false
 createToggle(pageAim, "تفعيل السايلنت ايم (Silent Aim)", false, function(s) SilentAim = s end)
 createToggle(pageAim, "إظهار دائرة الـ FOV", false, function(s) FovEnabled = s; FovCircle.Visible = s end)
 
--- 2. Radar & Loot Section
 local ItemESP = true
 local Highlights = false
-local RadarActive = false
 
 createToggle(pageRadar, "كشف لوت الناس (Item ESP)", true, function(s) ItemESP = s end)
 createToggle(pageRadar, "تحديد الخصوم باللون النيون (Highlight)", false, function(s) Highlights = s end)
 
--- 3. Player Section
-local SpeedBoost = false
-
 createToggle(pageChar, "سرعة عالية (Speed Hack)", false, function(s)
-    SpeedBoost = s
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = s and 32 or 16
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = s and 28 or 16
     end
 end)
 
 ---------------------------------------------------------
--- 🔄 MAIN RENDER LOOP
+-- 🔄 RENDER LOOP (SAFE FROM ADONIS)
 ---------------------------------------------------------
 RunService.RenderStepped:Connect(function()
     FovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
     FovCircle.Radius = FovRadius
 
-    -- Silent Aim Action
     if SilentAim then
         local target = nil
-        local maxDist = FovEnabled and FovRadius or 600
+        local maxDist = FovEnabled and FovRadius or 500
 
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
@@ -251,7 +230,6 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    -- ESP Loop
     for _, p in ipairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
             -- Highlight
