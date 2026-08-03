@@ -1,101 +1,86 @@
--- ============================================
---           901 EXCLUSIVE SCRIPT
---        ALL RIGHTS RESERVED TO: 901
--- ============================================
-
+-- Services
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local Camera = workspace.CurrentCamera
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
 
-local Target = nil
-local LockEnabled = false
-
--- GUI Creation (واجهة 901 الخاصة)
+-- UI Setup
 local ScreenGui = Instance.new("ScreenGui")
-local ToggleButton = Instance.new("TextButton")
-local UICorner = Instance.new("UICorner")
-local UIStroke = Instance.new("UIStroke")
+ScreenGui.Name = "CL_StreetHub_GUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
 
--- حماية وتسمية بحقوق 901
-ScreenGui.Parent = game.CoreGui
-ScreenGui.Name = "Script_901_Exclusive"
+local Frame = Instance.new("Frame")
+Frame.Size = UDim2.new(0, 240, 0, 375)
+Frame.Position = UDim2.new(0.5, -120, 0.5, -187)
+Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Frame.BorderColor3 = Color3.fromRGB(88, 101, 242)
+Frame.Active = true
+Frame.Draggable = true
+Frame.ClipsDescendants = true
+Frame.Parent = ScreenGui
 
-ToggleButton.Name = "Button_901"
-ToggleButton.Parent = ScreenGui
-ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-ToggleButton.Position = UDim2.new(0.85, 0, 0.5, 0)
-ToggleButton.Size = UDim2.new(0, 120, 0, 50)
-ToggleButton.Font = Enum.Font.SourceSansBold
-ToggleButton.Text = "[ 901 ]\nLock: OFF"
-ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50)
-ToggleButton.TextSize = 16.000
-ToggleButton.Active = true
-ToggleButton.Draggable = true
+-- Title
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Text = "CL Street Hub"
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 15
+Title.Parent = Frame
 
-UICorner.CornerRadius = UDim.new(0, 8)
-UICorner.Parent = ToggleButton
-
-UIStroke.Thickness = 2
-UIStroke.Color = Color3.fromRGB(255, 0, 0)
-UIStroke.Parent = ToggleButton
-
--- البحث عن أقرب هدف (نفس الميزة)
-local function GetClosestPlayer()
-    local Closest = nil
-    local ShortestDistance = math.huge
-
-    for _, v in pairs(Players:GetPlayers()) do
-        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
-            local Position, OnScreen = Camera:WorldToViewportPoint(v.Character.HumanoidRootPart.Position)
-            if OnScreen then
-                local MousePos = UserInputService:GetMouseLocation()
-                local Distance = (Vector2.new(Position.X, Position.Y) - MousePos).Magnitude
-                if Distance < ShortestDistance then
-                    Closest = v
-                    ShortestDistance = Distance
-                end
-            end
-        end
-    end
-    return Closest
+-- Helper Function for Buttons
+local function createButton(text, posY)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.9, 0, 0, 38)
+    btn.Position = UDim2.new(0.05, 0, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btn.Text = text
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextSize = 14
+    btn.Parent = Frame
+    return btn
 end
 
--- تشغيل/إيقاف القفل بحقوق 901
-ToggleButton.MouseButton1Click:Connect(function()
-    LockEnabled = not LockEnabled
-    if LockEnabled then
-        Target = GetClosestPlayer()
-        if Target then
-            ToggleButton.Text = "[ 901 ]\nLocked: " .. Target.DisplayName
-            ToggleButton.TextColor3 = Color3.fromRGB(50, 255, 50)
-            UIStroke.Color = Color3.fromRGB(0, 255, 0)
-        else
-            LockEnabled = false
-            ToggleButton.Text = "[ 901 ]\nNo Target!"
-            ToggleButton.TextColor3 = Color3.fromRGB(255, 165, 0)
-            UIStroke.Color = Color3.fromRGB(255, 165, 0)
-            task.wait(1)
-            ToggleButton.Text = "[ 901 ]\nLock: OFF"
-            ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50)
-            UIStroke.Color = Color3.fromRGB(255, 0, 0)
-        end
-    else
-        Target = nil
-        ToggleButton.Text = "[ 901 ]\nLock: OFF"
-        ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50)
-        UIStroke.Color = Color3.fromRGB(255, 0, 0)
-    end
+-- Create Menu Buttons
+local Btn_FOV = createButton("FOV & Tracers: OFF", 42)
+local Btn_ESP = createButton("ESP (Box + Skeleton): OFF", 86)
+local Btn_AutoHit = createButton("Auto Hit Fire: OFF", 130)
+local Btn_Stamina = createButton("Infinite Stamina: OFF", 174)
+local Btn_FastFire = createButton("Fast Fire Config: OFF", 218)
+
+-- FOV Circle
+local Circle = Drawing.new("Circle")
+Circle.Visible = false
+Circle.Radius = 120
+Circle.Color = Color3.fromRGB(255, 255, 255)
+Circle.Thickness = 1
+Circle.Transparency = 0.7
+
+-- Button Triggers
+Btn_FOV.MouseButton1Click:Connect(function()
+    Btn_FOV.Text = "FOV & Tracers: ON"
+    Btn_FOV.TextColor3 = Color3.fromRGB(0, 255, 0)
+    Circle.Visible = true
 end)
 
--- نظام القفل الذكي (Camera Lock)
+-- Infinite Stamina Remote Exploit (الريموت المكشوف)
+Btn_Stamina.MouseButton1Click:Connect(function()
+    Btn_Stamina.Text = "Infinite Stamina: ON"
+    Btn_Stamina.TextColor3 = Color3.fromRGB(0, 255, 0)
+    
+    pcall(function()
+        local SuperJuice = ReplicatedStorage:WaitForChild("SuperJuice")
+        SuperJuice:FireServer(true)
+    end)
+end)
+
+-- Keep FOV Circle Centered
 RunService.RenderStepped:Connect(function()
-    if LockEnabled and Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
-        Camera.CFrame = CFrame.new(Camera.CFrame.Position, Target.Character.HumanoidRootPart.Position)
+    if Circle.Visible then
+        Circle.Position = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2)
     end
 end)
-
-print("----------------------------")
-print(" 901 SCRIPT LOADED SUCCESSFULLY! ")
-print("----------------------------")
