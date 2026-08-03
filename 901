@@ -1,6 +1,6 @@
 -- ============================================================
 -- KLO 901 VIP - UNDETECTED RAYFIELD EDITION
--- Rights: 901 | Fully Safe Anti-Kick System
+-- Rights: 901 | PVP System
 -- ============================================================
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
@@ -29,6 +29,7 @@ local Settings = {
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
@@ -98,7 +99,7 @@ FOVCircle.Visible = false
 
 RunService.RenderStepped:Connect(function()
     if UserInputService then
-        local mousePos = game:GetService("UserInputService"):GetMouseLocation()
+        local mousePos = UserInputService:GetMouseLocation()
         FOVCircle.Position = mousePos
     end
     FOVCircle.Radius = Settings.FOVRadius
@@ -107,7 +108,7 @@ end)
 
 Rayfield:Notify({
    Title = "KLO 901 Loaded!",
-   Content = "السكربت شغال بأمان تام وبدون طرد 👍",
+   Content = "Welcome Abu Saif | KLO 901 VIP 👑",
    Duration = 5,
    Image = 4483362458,
 })
