@@ -1,280 +1,101 @@
--- ============================================================
--- KLO 901 VIP - FULLY INTEGRATED & UNDETECTED EDITION
--- Rights: 901 | Includes MX2 Features
--- ============================================================
-
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-
-local Window = Rayfield:CreateWindow({
-   Name = "👑 KLO 901 | PVP SYSTEM",
-   LoadingTitle = "KLO 901 Loading...",
-   LoadingSubtitle = "by 901",
-   ConfigurationSaving = { Enabled = false },
-   Discord = { Enabled = false },
-   KeySystem = false
-})
-
--- ⚙️ [SETTINGS STATE]
-local Settings = {
-    SilentAim = false,
-    FOVRadius = 130,
-    ShowFOV = false,
-    TargetPart = "Head",
-    
-    EspEnabled = false,
-    EspBox = true,
-    EspName = true,
-    
-    WalkSpeed = 16,
-    JumpPower = 50,
-    FlyEnabled = false,
-    FlySpeed = 50
-}
+-- ============================================
+--           901 EXCLUSIVE SCRIPT
+--        ALL RIGHTS RESERVED TO: 901
+-- ============================================
 
 local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- 🎯 [TARGET FINDER ENGINE]
-local function getClosestTarget()
-    local closestPlayer = nil
-    local shortestDistance = Settings.FOVRadius
+local Target = nil
+local LockEnabled = false
 
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-            local part = player.Character:FindFirstChild(Settings.TargetPart) or player.Character:FindFirstChild("HumanoidRootPart")
-            
-            if humanoid and humanoid.Health > 0 and part then
-                local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
-                if onScreen then
-                    local mousePos = UserInputService:GetMouseLocation()
-                    local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
+-- GUI Creation (واجهة 901 الخاصة)
+local ScreenGui = Instance.new("ScreenGui")
+local ToggleButton = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local UIStroke = Instance.new("UIStroke")
 
-                    if distance < shortestDistance then
-                        closestPlayer = player
-                        shortestDistance = distance
-                    end
+-- حماية وتسمية بحقوق 901
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "Script_901_Exclusive"
+
+ToggleButton.Name = "Button_901"
+ToggleButton.Parent = ScreenGui
+ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+ToggleButton.Position = UDim2.new(0.85, 0, 0.5, 0)
+ToggleButton.Size = UDim2.new(0, 120, 0, 50)
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.Text = "[ 901 ]\nLock: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+ToggleButton.TextSize = 16.000
+ToggleButton.Active = true
+ToggleButton.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = ToggleButton
+
+UIStroke.Thickness = 2
+UIStroke.Color = Color3.fromRGB(255, 0, 0)
+UIStroke.Parent = ToggleButton
+
+-- البحث عن أقرب هدف (نفس الميزة)
+local function GetClosestPlayer()
+    local Closest = nil
+    local ShortestDistance = math.huge
+
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+            local Position, OnScreen = Camera:WorldToViewportPoint(v.Character.HumanoidRootPart.Position)
+            if OnScreen then
+                local MousePos = UserInputService:GetMouseLocation()
+                local Distance = (Vector2.new(Position.X, Position.Y) - MousePos).Magnitude
+                if Distance < ShortestDistance then
+                    Closest = v
+                    ShortestDistance = Distance
                 end
             end
         end
     end
-    return closestPlayer
+    return Closest
 end
 
--- ⚔️ [COMBAT TAB]
-local CombatTab = Window:CreateTab("⚔️ Combat", 4483362458)
-
-CombatTab:CreateToggle({
-   Name = "Silent Aim (تصويب سحري آمن)",
-   CurrentValue = false,
-   Flag = "SilentAim",
-   Callback = function(Value) Settings.SilentAim = Value end,
-})
-
-CombatTab:CreateDropdown({
-   Name = "Target Part (مكان التصويب)",
-   Options = {"Head", "HumanoidRootPart"},
-   CurrentOption = "Head",
-   Flag = "TargetPart",
-   Callback = function(Option) Settings.TargetPart = Option[1] end,
-})
-
-CombatTab:CreateToggle({
-   Name = "Show FOV (دائرة التحديد)",
-   CurrentValue = false,
-   Flag = "ShowFOV",
-   Callback = function(Value) Settings.ShowFOV = Value end,
-})
-
-CombatTab:CreateSlider({
-   Name = "FOV Radius (حجم دائرة الاصطياد)",
-   Range = {50, 500},
-   Increment = 10,
-   Suffix = "px",
-   CurrentValue = 130,
-   Flag = "FOVSize",
-   Callback = function(Value) Settings.FOVRadius = Value end,
-})
-
--- 👁️ [ESP TAB]
-local EspTab = Window:CreateTab("👁️ ESP", 4483362458)
-
-EspTab:CreateToggle({
-   Name = "Enable ESP Radar (تفعيل الرادار)",
-   CurrentValue = false,
-   Flag = "EspEnabled",
-   Callback = function(Value) Settings.EspEnabled = Value end,
-})
-
--- 🏃 [PLAYER TAB]
-local PlayerTab = Window:CreateTab("🏃 Player", 4483362458)
-
-PlayerTab:CreateSlider({
-   Name = "WalkSpeed (سرعة المشي)",
-   Range = {16, 200},
-   Increment = 1,
-   Suffix = "Speed",
-   CurrentValue = 16,
-   Flag = "SpeedSlider",
-   Callback = function(Value)
-       Settings.WalkSpeed = Value
-       if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-           LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
-       end
-   end,
-})
-
-PlayerTab:CreateSlider({
-   Name = "JumpPower (قوة القفز)",
-   Range = {50, 300},
-   Increment = 5,
-   Suffix = "Power",
-   CurrentValue = 50,
-   Flag = "JumpSlider",
-   Callback = function(Value)
-       Settings.JumpPower = Value
-       if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-           LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = Value
-       end
-   end,
-})
-
--- ⚙️ [MISC TAB]
-local MiscTab = Window:CreateTab("⚙️ Misc", 4483362458)
-
-MiscTab:CreateButton({
-   Name = "Anti-AFK (منع الطرد للخمول)",
-   Callback = function()
-       local VirtualUser = game:GetService("VirtualUser")
-       LocalPlayer.Idled:Connect(function()
-           VirtualUser:CaptureController()
-           VirtualUser:ClickButton2(Vector2.new())
-       end)
-   end,
-})
-
-MiscTab:CreateButton({
-   Name = "Rejoin Server (إعادة دخول)",
-   Callback = function()
-       game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-   end,
-})
-
--- 🎨 [DRAWINGS ENGINE & RENDER LOOP]
-local FOVCircle = Drawing.new("Circle")
-FOVCircle.Color = Color3.fromRGB(0, 200, 255)
-FOVCircle.Thickness = 1.5
-FOVCircle.NumSides = 80
-FOVCircle.Filled = false
-FOVCircle.Transparency = 0.7
-FOVCircle.Visible = false
-
-local ESP_Cache = {}
-local function createESP(player)
-    local drawings = {Text = Drawing.new("Text"), Box = Drawing.new("Square")}
-    drawings.Text.Size = 13
-    drawings.Text.Center = true
-    drawings.Text.Outline = true
-    drawings.Text.Visible = false
-    drawings.Box.Thickness = 1.5
-    drawings.Box.Filled = false
-    drawings.Box.Visible = false
-    ESP_Cache[player] = drawings
-end
-
-Players.PlayerRemoving:Connect(function(p)
-    if ESP_Cache[p] then
-        ESP_Cache[p].Text:Remove()
-        ESP_Cache[p].Box:Remove()
-        ESP_Cache[p] = nil
+-- تشغيل/إيقاف القفل بحقوق 901
+ToggleButton.MouseButton1Click:Connect(function()
+    LockEnabled = not LockEnabled
+    if LockEnabled then
+        Target = GetClosestPlayer()
+        if Target then
+            ToggleButton.Text = "[ 901 ]\nLocked: " .. Target.DisplayName
+            ToggleButton.TextColor3 = Color3.fromRGB(50, 255, 50)
+            UIStroke.Color = Color3.fromRGB(0, 255, 0)
+        else
+            LockEnabled = false
+            ToggleButton.Text = "[ 901 ]\nNo Target!"
+            ToggleButton.TextColor3 = Color3.fromRGB(255, 165, 0)
+            UIStroke.Color = Color3.fromRGB(255, 165, 0)
+            task.wait(1)
+            ToggleButton.Text = "[ 901 ]\nLock: OFF"
+            ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+            UIStroke.Color = Color3.fromRGB(255, 0, 0)
+        end
+    else
+        Target = nil
+        ToggleButton.Text = "[ 901 ]\nLock: OFF"
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 50, 50)
+        UIStroke.Color = Color3.fromRGB(255, 0, 0)
     end
 end)
 
-local function isPlayerInCover(targetChar)
-    if not targetChar or not targetChar:FindFirstChild("Head") or not LocalPlayer.Character then return true end
-    local origin = Camera.CFrame.Position
-    local targetPos = targetChar.Head.Position
-    local rayParams = RaycastParams.new()
-    rayParams.FilterType = RaycastFilterType.Exclude
-    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, targetChar}
-    return workspace:Raycast(origin, targetPos - origin, rayParams) ~= nil
-end
-
+-- نظام القفل الذكي (Camera Lock)
 RunService.RenderStepped:Connect(function()
-    -- FOV
-    local mousePos = UserInputService:GetMouseLocation()
-    FOVCircle.Position = mousePos
-    FOVCircle.Radius = Settings.FOVRadius
-    FOVCircle.Visible = Settings.ShowFOV
-
-    -- Maintain WalkSpeed/JumpPower
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if Settings.WalkSpeed > 16 then hum.WalkSpeed = Settings.WalkSpeed end
-        if Settings.JumpPower > 50 then hum.JumpPower = Settings.JumpPower end
-    end
-
-    -- Silent Aim Engine
-    if Settings.SilentAim then
-        local target = getClosestTarget()
-        if target and target.Character and target.Character:FindFirstChild(Settings.TargetPart) then
-            local character = LocalPlayer.Character
-            if character then
-                local tool = character:FindFirstChildOfClass("Tool")
-                if tool and tool:FindFirstChild("Handle") then
-                    tool.Handle.CFrame = CFrame.new(tool.Handle.Position, target.Character[Settings.TargetPart].Position)
-                end
-            end
-        end
-    end
-
-    -- ESP Engine
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            if not ESP_Cache[player] then createESP(player) end
-            local drawings = ESP_Cache[player]
-            local char = player.Character
-
-            if Settings.EspEnabled and char and char:FindFirstChild("HumanoidRootPart") then
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum and hum.Health > 0 then
-                    local hrpPos, onScreen = Camera:WorldToViewportPoint(char.HumanoidRootPart.Position)
-                    if onScreen then
-                        local inCover = isPlayerInCover(char)
-                        local statusColor = inCover and Color3.fromRGB(255, 40, 40) or Color3.fromRGB(40, 255, 100)
-                        local statusText = inCover and "[Cover 🟥]" or "[Open 🟩]"
-
-                        drawings.Text.Text = string.format("%s | %d HP\n%s", player.DisplayName, math.floor(hum.Health), statusText)
-                        drawings.Text.Position = Vector2.new(hrpPos.X, hrpPos.Y - 40)
-                        drawings.Text.Color = statusColor
-                        drawings.Text.Visible = true
-
-                        drawings.Box.Size = Vector2.new(2000 / hrpPos.Z, 3000 / hrpPos.Z)
-                        drawings.Box.Position = Vector2.new(hrpPos.X - drawings.Box.Size.X / 2, hrpPos.Y - drawings.Box.Size.Y / 2)
-                        drawings.Box.Color = statusColor
-                        drawings.Box.Visible = true
-                    else
-                        drawings.Text.Visible = false
-                        drawings.Box.Visible = false
-                    end
-                else
-                    drawings.Text.Visible = false
-                    drawings.Box.Visible = false
-                end
-            else
-                drawings.Text.Visible = false
-                drawings.Box.Visible = false
-            end
-        end
+    if LockEnabled and Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+        Camera.CFrame = CFrame.new(Camera.CFrame.Position, Target.Character.HumanoidRootPart.Position)
     end
 end)
 
-Rayfield:Notify({
-   Title = "KLO 901 VIP Loaded!",
-   Content = "Welcome Abu Saif | KLO 901 VIP 👑",
-   Duration = 5,
-   Image = 4483362458,
-})
+print("----------------------------")
+print(" 901 SCRIPT LOADED SUCCESSFULLY! ")
+print("----------------------------")
