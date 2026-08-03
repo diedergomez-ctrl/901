@@ -2,15 +2,61 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local CoreGui = game:GetService("CoreGui")
 
--- إنشاء الشاشة الرئيسية لـ ESP
+-- 1. إنشاء الشاشة الرئيسية (ScreenGui)
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "InventoryEspTextSystem"
+ScreenGui.Name = "StreetHub_ESP_GUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
+-- 2. إنشاء نافذة القائمة (Main Window)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 220, 0, 130)
+MainFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+-- تصميم الحواف الدائرية
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 8)
+
+local UIStroke = Instance.new("UIStroke", MainFrame)
+UIStroke.Color = Color3.fromRGB(0, 255, 120)
+UIStroke.Thickness = 1.5
+
+-- 3. عنوان القائمة (Title)
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.BackgroundTransparency = 1
+Title.Text = "STREET HUB | ESP"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 13
+Title.Parent = MainFrame
+
+-- 4. زر التفعيل والإطفاء (Toggle Button)
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0.85, 0, 0, 40)
+ToggleBtn.Position = UDim2.new(0.075, 0, 0.45, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
+ToggleBtn.Text = "Inventory ESP: OFF"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 12
+ToggleBtn.Parent = MainFrame
+
+local BtnCorner = Instance.new("UICorner", ToggleBtn)
+BtnCorner.CornerRadius = UDim.new(0, 6)
+
+---------------------------------------------------
+-- ⚙️ نظام الـ ESP البرمجي
+---------------------------------------------------
+local ESP_Enabled = false
 local Storage = {}
 
--- دالة تنظيف الاتصالات والعناصر عند خروج/إعادة رسبونة اللاعب
 local function ClearStorage(player)
 	if Storage[player] then
 		if Storage[player].Billboard then
@@ -25,7 +71,6 @@ local function ClearStorage(player)
 	end
 end
 
--- دالة مراقبة أدوات اللاعبين
 local function MonitorInventory(player)
 	ClearStorage(player)
 	if player == LocalPlayer then return end
@@ -35,7 +80,8 @@ local function MonitorInventory(player)
 	billboard.AlwaysOnTop = true
 	billboard.Size = UDim2.new(0, 300, 0, 25)
 	billboard.Active = false
-	billboard.StudsOffset = Vector3.new(0, 3, 0) -- وضع النسيج فوق رأس الشخصية
+	billboard.StudsOffset = Vector3.new(0, 3, 0)
+	billboard.Enabled = false
 	
 	local container = Instance.new("Frame", billboard)
 	container.Size = UDim2.new(1, 0, 1, 0)
@@ -45,7 +91,6 @@ local function MonitorInventory(player)
 	layout.FillDirection = Enum.FillDirection.Horizontal
 	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 	layout.VerticalAlignment = Enum.VerticalAlignment.Center
-	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Padding = UDim.new(0, 4)
 
 	Storage[player] = {
@@ -54,7 +99,6 @@ local function MonitorInventory(player)
 		Connections = {}
 	}
 
-	-- دالة تحديث قائمة الأسلحة والأغراض
 	local function UpdateItems()
 		if not Storage[player] or not Storage[player].Container then return end
 		
@@ -64,11 +108,15 @@ local function MonitorInventory(player)
 			end
 		end
 
+		if not ESP_Enabled then
+			billboard.Enabled = false
+			return
+		end
+
 		local Character = player.Character
 		local Backpack = player:FindFirstChild("Backpack")
 		local TotalItems = {}
 
-		-- قراءة الأسلحة المسحوبة بيده
 		if Character then
 			for _, tool in ipairs(Character:GetChildren()) do
 				if tool:IsA("Tool") then
@@ -77,7 +125,6 @@ local function MonitorInventory(player)
 			end
 		end
 
-		-- قراءة الأسلحة الموجودة بالحقيبة
 		if Backpack then
 			for _, tool in ipairs(Backpack:GetChildren()) do
 				if tool:IsA("Tool") then
@@ -93,14 +140,13 @@ local function MonitorInventory(player)
 			billboard.Enabled = true
 		end
 
-		-- عرض الأسماء بألوان واضحة
 		for _, itemName in ipairs(TotalItems) do
 			local textLabel = Instance.new("TextLabel", Storage[player].Container)
 			textLabel.Size = UDim2.new(0, 0, 1, 0)
 			textLabel.AutomaticSize = Enum.AutomaticSize.X
 			textLabel.BackgroundTransparency = 1
 			textLabel.Text = "[" .. itemName .. "]"
-			textLabel.TextColor3 = Color3.fromRGB(0, 255, 120) -- لون أخضر فسفوري واضح
+			textLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
 			textLabel.Font = Enum.Font.GothamBold
 			textLabel.TextSize = 11
 			textLabel.TextStrokeTransparency = 0.2
@@ -108,7 +154,6 @@ local function MonitorInventory(player)
 		end
 	end
 
-	-- تجهيز شخصية اللاعب
 	local function SetupCharacter(character)
 		if not Storage[player] then return end
 		
@@ -126,14 +171,10 @@ local function MonitorInventory(player)
 		table.insert(Storage[player].Connections, cRem)
 	end
 
-	if player.Character then
-		SetupCharacter(player.Character)
-	end
-
+	if player.Character then SetupCharacter(player.Character) end
 	local charAddedConn = player.CharacterAdded:Connect(SetupCharacter)
 	table.insert(Storage[player].Connections, charAddedConn)
 
-	-- ربط حقيبة الأغراض Backpack
 	local function SetupBackpackListeners()
 		local Backpack = player:WaitForChild("Backpack", 10)
 		if Backpack and Storage[player] then
@@ -155,10 +196,37 @@ local function MonitorInventory(player)
 	table.insert(Storage[player].Connections, bpConn)
 end
 
--- تشغيل السكربت على الجميع
+-- 5. تشغيل التثبيت للكل
 for _, player in ipairs(Players:GetPlayers()) do
 	MonitorInventory(player)
 end
-
 Players.PlayerAdded:Connect(MonitorInventory)
 Players.PlayerRemoving:Connect(ClearStorage)
+
+-- 6. برمجة زر التفعيل والإيقاف
+ToggleBtn.MouseButton1Click:Connect(function()
+	ESP_Enabled = not ESP_Enabled
+	
+	if ESP_Enabled then
+		ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- أخضر (مفعل)
+		ToggleBtn.Text = "Inventory ESP: ON"
+	else
+		ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
+		ToggleBtn.Text = "Inventory ESP: OFF"
+	end
+	
+	-- تحديث حالة الظهور فوراً لجميع اللاعبين
+	for plr, data in pairs(Storage) do
+		if data.Billboard then
+			if not ESP_Enabled then
+				data.Billboard.Enabled = false
+			else
+				-- إعادة الاحتساب
+				if plr.Character then
+					local toolCount = #plr.Character:GetChildren() + (plr:FindFirstChild("Backpack") and #plr:FindFirstChild("Backpack"):GetChildren() or 0)
+					data.Billboard.Enabled = (toolCount > 0)
+				end
+			end
+		end
+	end
+end)
