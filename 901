@@ -1,182 +1,151 @@
---[[
-    ==================================================
-    🔥 901 SYSTEM - CLEAN & SAFE VISUALS (NO CRASH)
-    Developed Exclusively for: 901
-    Pure Visual GUI - Undetected 100%
-    ==================================================
---]]
+-- ============================================================
+-- KLO 901 RADAR SYSTEM - CL STREET EDITION
+-- Rights: 901 | Feature: Smart ESP & Radar Logic
+-- ============================================================
 
 local Players = game:GetService("Players")
-local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
--- GUI Setup
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "System901Visuals"
-ScreenGui.ResetOnSpawn = false
+-- ⚙️ [RADAR SETTINGS]
+local RadarSettings = {
+    Enabled = true,
+    ShowHealth = true,
+    ShowWeapon = true,
+    ShowCoverStatus = true,
+    RightsText = "KLO 901 RADAR"
+}
 
-pcall(function()
-    if gethui then
-        ScreenGui.Parent = gethui()
-    else
-        ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+-- 🎨 [WEAPON COLOR LOGIC]
+local function getWeaponColor(character)
+    local tool = character:FindFirstChildOfClass("Tool")
+    if not tool then
+        return Color3.fromRGB(240, 240, 240), "بدون سلاح" -- أبيض
     end
-end)
 
--- 🔘 Floating Circle Button
-local ToggleCircle = Instance.new("TextButton")
-ToggleCircle.Size = UDim2.new(0, 50, 0, 50)
-ToggleCircle.Position = UDim2.new(0, 15, 0.4, 0)
-ToggleCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-ToggleCircle.Text = "901"
-ToggleCircle.TextColor3 = Color3.fromRGB(180, 100, 255)
-ToggleCircle.Font = Enum.Font.GothamBold
-ToggleCircle.TextSize = 15
-ToggleCircle.Active = true
-ToggleCircle.Draggable = true
-ToggleCircle.Parent = ScreenGui
+    local weaponName = tool.Name
+    local lowerName = string.lower(weaponName)
 
-Instance.new("UICorner", ToggleCircle).CornerRadius = UDim.new(1, 0)
-local CircleGlow = Instance.new("UIStroke", ToggleCircle)
-CircleGlow.Color = Color3.fromRGB(138, 43, 226)
-CircleGlow.Thickness = 2.5
-
--- Main Frame
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 420, 0, 260)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -130)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Visible = true
-MainFrame.Parent = ScreenGui
-
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
-local MainGlow = Instance.new("UIStroke", MainFrame)
-MainGlow.Color = Color3.fromRGB(138, 43, 226)
-MainGlow.Thickness = 2.5
-
-ToggleCircle.MouseButton1Click:Connect(function()
-    MainFrame.Visible = not MainFrame.Visible
-end)
-
--- Header Bar
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 40)
-Header.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
-Header.Parent = MainFrame
-Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(0, 200, 1, 0)
-Title.Position = UDim2.new(0, 15, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = "⚡ 901 SYSTEM | VISUALS"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 14
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Parent = Header
-
-local Container = Instance.new("Frame")
-Container.Size = UDim2.new(1, -20, 1, -55)
-Container.Position = UDim2.new(0, 10, 0, 48)
-Container.BackgroundTransparency = 1
-Container.Parent = MainFrame
-
-local function createToggle(text, default, callback)
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 42)
-    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 33)
-    frame.Parent = Container
-    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
-
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(0.7, 0, 1, 0)
-    lbl.Position = UDim2.new(0, 12, 0, 0)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = text
-    lbl.TextColor3 = Color3.fromRGB(230, 230, 230)
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 12
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
-    lbl.Parent = frame
-
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 50, 0, 24)
-    btn.Position = UDim2.new(1, -60, 0.5, -12)
-    btn.BackgroundColor3 = default and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(45, 45, 55)
-    btn.Text = default and "ON" or "OFF"
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
-    btn.Parent = frame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
-
-    local state = default
-    btn.MouseButton1Click:Connect(function()
-        state = not state
-        btn.BackgroundColor3 = state and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(45, 45, 55)
-        btn.Text = state and "ON" or "OFF"
-        callback(state)
-    end)
+    -- تحديد نوع السلاح لتلوين الاسم
+    if string.find(lowerName, "ak") or string.find(lowerName, "m4") or string.find(lowerName, "shotgun") or string.find(lowerName, "rifle") or string.find(lowerName, "draco") then
+        return Color3.fromRGB(255, 85, 0), weaponName -- أحمر/برتقالي للأسلحة القوية
+    elseif string.find(lowerName, "pistol") or string.find(lowerName, "glock") or string.find(lowerName, "smg") or string.find(lowerName, "uzi") or string.find(lowerName, "taser") then
+        return Color3.fromRGB(255, 215, 0), weaponName -- أصفر للمسدسات والرشاشات الخفيفة
+    else
+        return Color3.fromRGB(180, 255, 255), weaponName -- أزرق فاتح للبقية
+    end
 end
 
-local ItemESP = true
-local Highlights = true
+-- 🧱 [COVER CHECK - WALLCHECK LOGIC]
+local function isPlayerInCover(targetCharacter)
+    if not targetCharacter or not targetCharacter:FindFirstChild("Head") or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("Head") then
+        return true
+    end
 
-createToggle("كشف لوت وشنط الخصوم (Item ESP)", true, function(s) ItemESP = s end)
-createToggle("تحديد أماكن اللاعبين (Neon Highlight)", true, function(s) Highlights = s end)
+    local origin = Camera.CFrame.Position
+    local targetPos = targetCharacter.Head.Position
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = RaycastFilterType.Exclude
+    raycastParams.FilterDescendantsInstances = {LocalPlayer.Character, targetCharacter}
 
--- Safe Loop (No Memory Hooking)
+    local result = workspace:Raycast(origin, targetPos - origin, raycastParams)
+    
+    -- إذا طلع العائق معناه اللاعب بـ كفر (أحمر)، إذا مافيه عائق يعني بـ أوبن (أخضر)
+    return result ~= nil 
+end
+
+-- 🖼️ [DRAWING ESP STORAGE]
+local ESP_Cache = {}
+
+local function createESP(player)
+    local drawings = {
+        Text = Drawing.new("Text"),
+        Box = Drawing.new("Square")
+    }
+
+    drawings.Text.Size = 13
+    drawings.Text.Center = true
+    drawings.Text.Outline = true
+    drawings.Text.OutlineColor = Color3.fromRGB(0, 0, 0)
+    drawings.Text.Visible = false
+
+    drawings.Box.Thickness = 1.5
+    drawings.Box.Filled = false
+    drawings.Box.Visible = false
+
+    ESP_Cache[player] = drawings
+end
+
+local function removeESP(player)
+    if ESP_Cache[player] then
+        ESP_Cache[player].Text:Remove()
+        ESP_Cache[player].Box:Remove()
+        ESP_Cache[player] = nil
+    end
+end
+
+-- Clean up on Player Leave
+Players.PlayerRemoving:Connect(removeESP)
+
+-- 🚀 [RADAR RENDER LOOP]
 RunService.RenderStepped:Connect(function()
-    for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-            -- Highlight
-            local hl = p.Character:FindFirstChild("HL901")
-            if Highlights then
-                if not hl then
-                    hl = Instance.new("Highlight", p.Character)
-                    hl.Name = "HL901"
-                    hl.FillColor = Color3.fromRGB(138, 43, 226)
-                end
-            elseif hl then
-                hl:Destroy()
+    if not RadarSettings.Enabled then
+        for _, drawings in pairs(ESP_Cache) do
+            drawings.Text.Visible = false
+            drawings.Box.Visible = false
+        end
+        return
+    end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if not ESP_Cache[player] then
+                createESP(player)
             end
 
-            -- Item ESP
-            local head = p.Character.Head
-            local bill = head:FindFirstChild("Bill901")
-            if ItemESP then
-                if not bill then
-                    bill = Instance.new("BillboardGui", head)
-                    bill.Name = "Bill901"
-                    bill.Size = UDim2.new(0, 180, 0, 35)
-                    bill.StudsOffset = Vector3.new(0, 2.5, 0)
-                    bill.AlwaysOnTop = true
+            local drawings = ESP_Cache[player]
+            local character = player.Character
 
-                    local txt = Instance.new("TextLabel", bill)
-                    txt.Size = UDim2.new(1, 0, 1, 0)
-                    txt.BackgroundTransparency = 1
-                    txt.TextColor3 = Color3.fromRGB(255, 215, 0)
-                    txt.Font = Enum.Font.GothamBold
-                    txt.TextSize = 11
-                    txt.TextStrokeTransparency = 0
-                end
+            if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChildOfClass("Humanoid") then
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
 
-                local items = {}
-                for _, t in ipairs(p.Character:GetChildren()) do if t:IsA("Tool") then table.insert(items, t.Name) end end
-                if p:FindFirstChild("Backpack") then
-                    for _, t in ipairs(p.Backpack:GetChildren()) do if t:IsA("Tool") then table.insert(items, t.Name) end end
-                end
+                if humanoid.Health > 0 then
+                    local hrpPos, onScreen = Camera:WorldToViewportPoint(character.HumanoidRootPart.Position)
 
-                local txt = bill:FindFirstChildOfClass("TextLabel")
-                if txt then
-                    txt.Text = "[" .. p.Name .. "]\n📦 " .. (#items > 0 and table.concat(items, ", ") or "بدون لوت")
+                    if onScreen then
+                        -- 1. فحص لون السلاح واسمه
+                        local nameColor, weaponName = getWeaponColor(character)
+
+                        -- 2. فحص حالة الكفر (أوبن / كفر)
+                        local inCover = isPlayerInCover(character)
+                        local statusColor = inCover and Color3.fromRGB(255, 30, 30) or Color3.fromRGB(30, 255, 100) -- أحمر لكفر / أخضر لأوبن
+
+                        -- 3. تجهيز نص الرادار
+                        local healthText = math.floor(humanoid.Health) .. " HP"
+                        local statusText = inCover and "[Cover 🟥]" or "[Open 🟩]"
+                        
+                        drawings.Text.Text = string.format("%s | %s\n🔫 %s | %s", player.DisplayName, healthText, weaponName, statusText)
+                        drawings.Text.Position = Vector2.new(hrpPos.X, hrpPos.Y - 45)
+                        drawings.Text.Color = nameColor
+                        drawings.Text.Visible = true
+
+                        -- 4. رسم المربع حول اللاعب بلون الكفر/الأوبن
+                        drawings.Box.Size = Vector2.new(2000 / hrpPos.Z, 3000 / hrpPos.Z)
+                        drawings.Box.Position = Vector2.new(hrpPos.X - drawings.Box.Size.X / 2, hrpPos.Y - drawings.Box.Size.Y / 2)
+                        drawings.Box.Color = statusColor
+                        drawings.Box.Visible = true
+                    else
+                        drawings.Text.Visible = false
+                        drawings.Box.Visible = false
+                    end
+                else
+                    drawings.Text.Visible = false
+                    drawings.Box.Visible = false
                 end
-            elseif bill then
-                bill:Destroy()
+            else
+                drawings.Text.Visible = false
+                drawings.Box.Visible = false
             end
         end
     end
