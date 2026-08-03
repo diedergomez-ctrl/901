@@ -1,116 +1,304 @@
 --[[
-    KLO - STEALTH ESP & ASSIST [UNDETECTED V12]
-    Designed specifically to bypass ByteCast Anti-Cheat
+    ==================================================
+    🔥 901 SYSTEM - ULTIMATE CUSTOM MENU (2026 EDITION)
+    Developed Exclusively for: 901
+    Fully Undetected & Smooth UI Engine
+    ==================================================
 --]]
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
--- Config
-local Config = {
-    ItemESP = true,
-    Tracers = false,
-    Highlights = true,
-    AimbotHotKey = Enum.UserInputType.MouseButton2 -- كليك يمين لتوجيه ناعم جداً
-}
+---------------------------------------------------------
+-- 🛡️ ANTI-KICK & PROTECTION ENGINE
+---------------------------------------------------------
+pcall(function()
+    hookfunction(LocalPlayer.Kick, function() return nil end)
+end)
 
--- Safe GUI Container
+---------------------------------------------------------
+-- 🎨 GUI CREATION (ULTIMATE NEON THEME - 901)
+---------------------------------------------------------
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "KLO_Stealth"
+ScreenGui.Name = "System901UI"
 ScreenGui.ResetOnSpawn = false
 
 pcall(function()
     if gethui then
         ScreenGui.Parent = gethui()
     else
-        ScreenGui.Parent = game:GetService("CoreGui")
+        ScreenGui.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
     end
 end)
 
--- Notification
-local function notify(msg)
-    local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(0, 250, 0, 35)
-    lbl.Position = UDim2.new(0.5, -125, 0.1, 0)
-    lbl.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    lbl.TextColor3 = Color3.fromRGB(0, 255, 150)
-    lbl.Font = Enum.Font.GothamBold
-    lbl.TextSize = 13
-    lbl.Text = msg
-    lbl.Parent = ScreenGui
-    Instance.new("UICorner", lbl).CornerRadius = UDim.new(0, 8)
-    task.delay(4, function() lbl:Destroy() end)
+-- Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 520, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -170)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+local MainGlow = Instance.new("UIStroke", MainFrame)
+MainGlow.Color = Color3.fromRGB(138, 43, 226) -- Blue-Purple Neon
+MainGlow.Thickness = 2.5
+
+-- Top Header Bar
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1, 0, 0, 45)
+Header.BackgroundColor3 = Color3.fromRGB(22, 22, 30)
+Header.Parent = MainFrame
+Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "⚡ 901 SYSTEM | MENU"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+local Rights = Instance.new("TextLabel")
+Rights.Size = UDim2.new(0, 150, 1, 0)
+Rights.Position = UDim2.new(1, -165, 0, 0)
+Rights.BackgroundTransparency = 1
+Rights.Text = "حقوق 901 "
+Rights.TextColor3 = Color3.fromRGB(180, 100, 255)
+Rights.Font = Enum.Font.GothamBold
+Rights.TextSize = 13
+Rights.TextXAlignment = Enum.TextXAlignment.Right
+Rights.Parent = Header
+
+-- Sidebar Navigation Tabs
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 130, 1, -55)
+Sidebar.Position = UDim2.new(0, 5, 0, 50)
+Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
+Sidebar.Parent = MainFrame
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 8)
+
+-- Content Area
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, -145, 1, -55)
+Content.Position = UDim2.new(0, 140, 0, 50)
+Content.BackgroundTransparency = 1
+Content.Parent = MainFrame
+
+-- Page Generator
+local pages = {}
+local function createPage(name)
+    local page = Instance.new("ScrollingFrame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.ScrollBarThickness = 2
+    page.ScrollBarImageColor3 = Color3.fromRGB(138, 43, 226)
+    page.Visible = false
+    page.Parent = Content
+    
+    local layout = Instance.new("UIListLayout")
+    layout.SortOrder = Enum.SortOrder.LayoutOrder
+    layout.Padding = UDim.new(0, 8)
+    layout.Parent = page
+    
+    pages[name] = page
+    return page
 end
 
-notify(" تم تفعيل الحماية الخفية - mx2")
+local pageAim = createPage("Aim")
+local pageRadar = createPage("Radar")
+local pageChar = createPage("Player")
 
--- Item ESP Engine
-local function updatePlayerESP(p)
-    if p == LocalPlayer or not p.Character then return end
-    local char = p.Character
-    local head = char:FindFirstChild("Head")
-    if not head then return end
+pageAim.Visible = true -- Default Page
 
-    -- Highlight (آمن)
-    if Config.Highlights then
-        local hl = char:FindFirstChild("KLO_HL")
-        if not hl then
-            hl = Instance.new("Highlight")
-            hl.Name = "KLO_HL"
-            hl.FillColor = Color3.fromRGB(255, 50, 50)
-            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-            hl.FillTransparency = 0.5
-            hl.Parent = char
-        end
+-- Tab Button Generator
+local function createTabBtn(text, pageName, posY)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -10, 0, 35)
+    btn.Position = UDim2.new(0, 5, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(28, 28, 38)
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 12
+    btn.Parent = Sidebar
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+
+    btn.MouseButton1Click:Connect(function()
+        for _, p in pairs(pages) do p.Visible = false end
+        pages[pageName].Visible = true
+    end)
+end
+
+createTabBtn("🎯 السايلنت ايم", "Aim", 10)
+createTabBtn("📡 الرادار واللوت", "Radar", 50)
+createTabBtn("👤 الشخصية", "Player", 90)
+
+---------------------------------------------------------
+-- 🧩 COMPONENTS GENERATOR (TOGGLES & SLIDERS)
+---------------------------------------------------------
+local function createToggle(parent, text, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -10, 0, 38)
+    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 33)
+    frame.Parent = parent
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 6)
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0.7, 0, 1, 0)
+    lbl.Position = UDim2.new(0, 10, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(230, 230, 230)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 12
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = frame
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 45, 0, 22)
+    btn.Position = UDim2.new(1, -55, 0.5, -11)
+    btn.BackgroundColor3 = default and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(45, 45, 55)
+    btn.Text = default and "ON" or "OFF"
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 10
+    btn.Parent = frame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 11)
+
+    local state = default
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        btn.BackgroundColor3 = state and Color3.fromRGB(138, 43, 226) or Color3.fromRGB(45, 45, 55)
+        btn.Text = state and "ON" or "OFF"
+        callback(state)
+    end)
+end
+
+---------------------------------------------------------
+-- ⚙️ FEATURES IMPLEMENTATION
+---------------------------------------------------------
+
+-- 1. Silent Aim Section
+local SilentAim = false
+local FovEnabled = false
+local FovRadius = 150
+
+local FovCircle = Drawing.new("Circle")
+FovCircle.Color = Color3.fromRGB(138, 43, 226)
+FovCircle.Thickness = 1.5
+FovCircle.NumSides = 60
+FovCircle.Visible = false
+
+createToggle(pageAim, "تفعيل السايلنت ايم (Silent Aim)", false, function(s) SilentAim = s end)
+createToggle(pageAim, "إظهار دائرة الـ FOV", false, function(s) FovEnabled = s; FovCircle.Visible = s end)
+
+-- 2. Radar & Loot Section
+local ItemESP = true
+local Highlights = false
+local RadarActive = false
+
+createToggle(pageRadar, "كشف لوت الناس (Item ESP)", true, function(s) ItemESP = s end)
+createToggle(pageRadar, "تحديد الخصوم باللون النيون (Highlight)", false, function(s) Highlights = s end)
+
+-- 3. Player Section
+local SpeedBoost = false
+
+createToggle(pageChar, "سرعة عالية (Speed Hack)", false, function(s)
+    SpeedBoost = s
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = s and 32 or 16
     end
+end)
 
-    -- Inventory ESP
-    if Config.ItemESP then
-        local bill = head:FindFirstChild("KLO_Bill")
-        if not bill then
-            bill = Instance.new("BillboardGui")
-            bill.Name = "KLO_Bill"
-            bill.Size = UDim2.new(0, 180, 0, 40)
-            bill.StudsOffset = Vector3.new(0, 2.8, 0)
-            bill.AlwaysOnTop = true
-            bill.Parent = head
+---------------------------------------------------------
+-- 🔄 MAIN RENDER LOOP
+---------------------------------------------------------
+RunService.RenderStepped:Connect(function()
+    FovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    FovCircle.Radius = FovRadius
 
-            local txt = Instance.new("TextLabel")
-            txt.Name = "Txt"
-            txt.Size = UDim2.new(1, 0, 1, 0)
-            txt.BackgroundTransparency = 1
-            txt.TextColor3 = Color3.fromRGB(255, 215, 0)
-            txt.Font = Enum.Font.GothamBold
-            txt.TextSize = 11
-            txt.TextStrokeTransparency = 0
-            txt.Parent = bill
-        end
+    -- Silent Aim Action
+    if SilentAim then
+        local target = nil
+        local maxDist = FovEnabled and FovRadius or 600
 
-        local items = {}
-        for _, tool in ipairs(char:GetChildren()) do
-            if tool:IsA("Tool") then table.insert(items, "✋ " .. tool.Name) end
-        end
-        if p:FindFirstChild("Backpack") then
-            for _, tool in ipairs(p.Backpack:GetChildren()) do
-                if tool:IsA("Tool") then table.insert(items, tool.Name) end
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                local pos, onScreen = Camera:WorldToViewportPoint(p.Character.Head.Position)
+                if onScreen then
+                    local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/2)).Magnitude
+                    if dist < maxDist then
+                        maxDist = dist
+                        target = p.Character.Head
+                    end
+                end
             end
         end
 
-        local txt = bill:FindFirstChild("Txt")
-        if txt then
-            txt.Text = "[" .. p.Name .. "]\n📦 " .. (#items > 0 and table.concat(items, ", ") or "بدون لوت")
+        if target then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
         end
     end
-end
 
--- Stealth Loop
-RunService.RenderStepped:Connect(function()
+    -- ESP Loop
     for _, p in ipairs(Players:GetPlayers()) do
-        pcall(function() updatePlayerESP(p) end)
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+            -- Highlight
+            local hl = p.Character:FindFirstChild("HL901")
+            if Highlights then
+                if not hl then
+                    hl = Instance.new("Highlight", p.Character)
+                    hl.Name = "HL901"
+                    hl.FillColor = Color3.fromRGB(138, 43, 226)
+                end
+            elseif hl then
+                hl:Destroy()
+            end
+
+            -- Inventory ESP
+            local head = p.Character.Head
+            local bill = head:FindFirstChild("Bill901")
+            if ItemESP then
+                if not bill then
+                    bill = Instance.new("BillboardGui", head)
+                    bill.Name = "Bill901"
+                    bill.Size = UDim2.new(0, 180, 0, 35)
+                    bill.StudsOffset = Vector3.new(0, 2.5, 0)
+                    bill.AlwaysOnTop = true
+
+                    local txt = Instance.new("TextLabel", bill)
+                    txt.Size = UDim2.new(1, 0, 1, 0)
+                    txt.BackgroundTransparency = 1
+                    txt.TextColor3 = Color3.fromRGB(255, 215, 0)
+                    txt.Font = Enum.Font.GothamBold
+                    txt.TextSize = 11
+                    txt.TextStrokeTransparency = 0
+                end
+
+                local items = {}
+                for _, t in ipairs(p.Character:GetChildren()) do if t:IsA("Tool") then table.insert(items, t.Name) end end
+                if p:FindFirstChild("Backpack") then
+                    for _, t in ipairs(p.Backpack:GetChildren()) do if t:IsA("Tool") then table.insert(items, t.Name) end end
+                end
+
+                local txt = bill:FindFirstChildOfClass("TextLabel")
+                if txt then
+                    txt.Text = "[" .. p.Name .. "]\n📦 " .. (#items > 0 and table.concat(items, ", ") or "بدون لوت")
+                end
+            elseif bill then
+                bill:Destroy()
+            end
+        end
     end
 end)
-
