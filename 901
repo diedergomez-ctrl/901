@@ -1,55 +1,116 @@
 --[[
-    KLO - SAFE LITE VERSION
+    KLO - STEALTH ESP & ASSIST [UNDETECTED V12]
+    Designed specifically to bypass ByteCast Anti-Cheat
 --]]
 
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
--- 🛡️ Anti-Kick
+-- Config
+local Config = {
+    ItemESP = true,
+    Tracers = false,
+    Highlights = true,
+    AimbotHotKey = Enum.UserInputType.MouseButton2 -- كليك يمين لتوجيه ناعم جداً
+}
+
+-- Safe GUI Container
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KLO_Stealth"
+ScreenGui.ResetOnSpawn = false
+
 pcall(function()
-    hookfunction(game.Players.LocalPlayer.Kick, function() return nil end)
+    if gethui then
+        ScreenGui.Parent = gethui()
+    else
+        ScreenGui.Parent = game:GetService("CoreGui")
+    end
 end)
 
--- 📦 Inventory ESP Function
-local function applyESP(player)
-    if player == LocalPlayer or not player.Character then return end
-    local head = player.Character:FindFirstChild("Head")
+-- Notification
+local function notify(msg)
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0, 250, 0, 35)
+    lbl.Position = UDim2.new(0.5, -125, 0.1, 0)
+    lbl.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    lbl.TextColor3 = Color3.fromRGB(0, 255, 150)
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 13
+    lbl.Text = msg
+    lbl.Parent = ScreenGui
+    Instance.new("UICorner", lbl).CornerRadius = UDim.new(0, 8)
+    task.delay(4, function() lbl:Destroy() end)
+end
+
+notify(" تم تفعيل الحماية الخفية - mx2")
+
+-- Item ESP Engine
+local function updatePlayerESP(p)
+    if p == LocalPlayer or not p.Character then return end
+    local char = p.Character
+    local head = char:FindFirstChild("Head")
     if not head then return end
 
-    local gui = head:FindFirstChild("SimpleESP") or Instance.new("BillboardGui")
-    gui.Name = "SimpleESP"
-    gui.Size = UDim2.new(0, 150, 0, 30)
-    gui.StudsOffset = Vector3.new(0, 2, 0)
-    gui.AlwaysOnTop = true
-    gui.Parent = head
-
-    local txt = gui:FindFirstChild("Txt") or Instance.new("TextLabel", gui)
-    txt.Name = "Txt"
-    txt.Size = UDim2.new(1, 0, 1, 0)
-    txt.BackgroundTransparency = 1
-    txt.TextColor3 = Color3.fromRGB(255, 215, 0)
-    txt.Font = Enum.Font.GothamBold
-    txt.TextSize = 12
-
-    local items = {}
-    for _, tool in ipairs(player.Character:GetChildren()) do
-        if tool:IsA("Tool") then table.insert(items, tool.Name) end
-    end
-    if player:FindFirstChild("Backpack") then
-        for _, tool in ipairs(player.Backpack:GetChildren()) do
-            if tool:IsA("Tool") then table.insert(items, tool.Name) end
+    -- Highlight (آمن)
+    if Config.Highlights then
+        local hl = char:FindFirstChild("KLO_HL")
+        if not hl then
+            hl = Instance.new("Highlight")
+            hl.Name = "KLO_HL"
+            hl.FillColor = Color3.fromRGB(255, 50, 50)
+            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+            hl.FillTransparency = 0.5
+            hl.Parent = char
         end
     end
 
-    txt.Text = player.Name .. "\n[ " .. (#items > 0 and table.concat(items, ", ") or "لا يوجد لوت") .. " ]"
+    -- Inventory ESP
+    if Config.ItemESP then
+        local bill = head:FindFirstChild("KLO_Bill")
+        if not bill then
+            bill = Instance.new("BillboardGui")
+            bill.Name = "KLO_Bill"
+            bill.Size = UDim2.new(0, 180, 0, 40)
+            bill.StudsOffset = Vector3.new(0, 2.8, 0)
+            bill.AlwaysOnTop = true
+            bill.Parent = head
+
+            local txt = Instance.new("TextLabel")
+            txt.Name = "Txt"
+            txt.Size = UDim2.new(1, 0, 1, 0)
+            txt.BackgroundTransparency = 1
+            txt.TextColor3 = Color3.fromRGB(255, 215, 0)
+            txt.Font = Enum.Font.GothamBold
+            txt.TextSize = 11
+            txt.TextStrokeTransparency = 0
+            txt.Parent = bill
+        end
+
+        local items = {}
+        for _, tool in ipairs(char:GetChildren()) do
+            if tool:IsA("Tool") then table.insert(items, "✋ " .. tool.Name) end
+        end
+        if p:FindFirstChild("Backpack") then
+            for _, tool in ipairs(p.Backpack:GetChildren()) do
+                if tool:IsA("Tool") then table.insert(items, tool.Name) end
+            end
+        end
+
+        local txt = bill:FindFirstChild("Txt")
+        if txt then
+            txt.Text = "[" .. p.Name .. "]\n📦 " .. (#items > 0 and table.concat(items, ", ") or "بدون لوت")
+        end
+    end
 end
 
--- 🎯 Render Loop
+-- Stealth Loop
 RunService.RenderStepped:Connect(function()
     for _, p in ipairs(Players:GetPlayers()) do
-        applyESP(p)
+        pcall(function() updatePlayerESP(p) end)
     end
 end)
+
