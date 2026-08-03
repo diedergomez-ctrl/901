@@ -1,5 +1,5 @@
 -- ============================================================
--- KLO 901 VIP - UNDETECTED RAYFIELD EDITION
+-- KLO 901 VIP - FULLY WORKING & SAFE EDITION
 -- Rights: 901 | PVP System
 -- ============================================================
 
@@ -9,12 +9,8 @@ local Window = Rayfield:CreateWindow({
    Name = "👑 KLO 901 | PVP SYSTEM",
    LoadingTitle = "KLO 901 Loading...",
    LoadingSubtitle = "by 901",
-   ConfigurationSaving = {
-      Enabled = false
-   },
-   Discord = {
-      Enabled = false
-   },
+   ConfigurationSaving = { Enabled = false },
+   Discord = { Enabled = false },
    KeySystem = false
 })
 
@@ -33,11 +29,38 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
+-- 🎯 [TARGET FINDER ENGINE]
+local function getClosestTarget()
+    local closestPlayer = nil
+    local shortestDistance = Settings.FOVRadius
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            local part = player.Character:FindFirstChild(Settings.TargetPart) or player.Character:FindFirstChild("HumanoidRootPart")
+            
+            if humanoid and humanoid.Health > 0 and part then
+                local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
+                if onScreen then
+                    local mousePos = UserInputService:GetMouseLocation()
+                    local distance = (Vector2.new(pos.X, pos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
+
+                    if distance < shortestDistance then
+                        closestPlayer = player
+                        shortestDistance = distance
+                    end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
+
 -- 🎯 [COMBAT TAB]
 local CombatTab = Window:CreateTab("⚔️ Combat", 4483362458)
 
 CombatTab:CreateToggle({
-   Name = "Safe Silent Aim (تصويب آمن)",
+   Name = "Silent Aim (تفعيل التصويب السحري)",
    CurrentValue = false,
    Flag = "SilentAim",
    Callback = function(Value)
@@ -46,7 +69,7 @@ CombatTab:CreateToggle({
 })
 
 CombatTab:CreateToggle({
-   Name = "Show FOV (دائرة التحديد)",
+   Name = "Show FOV (إظهار دائرة التحديد)",
    CurrentValue = false,
    Flag = "ShowFOV",
    Callback = function(Value)
@@ -88,7 +111,7 @@ MiscTab:CreateButton({
    end,
 })
 
--- 🎨 [SAFE FOV & ESP LOGIC]
+-- 🎨 [DRAWINGS ENGINE - FOV & ESP]
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(0, 200, 255)
 FOVCircle.Thickness = 1.5
@@ -97,13 +120,98 @@ FOVCircle.Filled = false
 FOVCircle.Transparency = 0.7
 FOVCircle.Visible = false
 
-RunService.RenderStepped:Connect(function()
-    if UserInputService then
-        local mousePos = UserInputService:GetMouseLocation()
-        FOVCircle.Position = mousePos
+local ESP_Cache = {}
+local function createESP(player)
+    local drawings = {Text = Drawing.new("Text"), Box = Drawing.new("Square")}
+    drawings.Text.Size = 13
+    drawings.Text.Center = true
+    drawings.Text.Outline = true
+    drawings.Text.Visible = false
+    drawings.Box.Thickness = 1.5
+    drawings.Box.Filled = false
+    drawings.Box.Visible = false
+    ESP_Cache[player] = drawings
+end
+
+Players.PlayerRemoving:Connect(function(p)
+    if ESP_Cache[p] then
+        ESP_Cache[p].Text:Remove()
+        ESP_Cache[p].Box:Remove()
+        ESP_Cache[p] = nil
     end
+end)
+
+local function isPlayerInCover(targetChar)
+    if not targetChar or not targetChar:FindFirstChild("Head") or not LocalPlayer.Character then return true end
+    local origin = Camera.CFrame.Position
+    local targetPos = targetChar.Head.Position
+    local rayParams = RaycastParams.new()
+    rayParams.FilterType = RaycastFilterType.Exclude
+    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, targetChar}
+    return workspace:Raycast(origin, targetPos - origin, rayParams) ~= nil
+end
+
+-- 🚀 [ACTIVE RENDER & AIM ENGINE]
+RunService.RenderStepped:Connect(function()
+    -- Update FOV Circle
+    local mousePos = UserInputService:GetMouseLocation()
+    FOVCircle.Position = mousePos
     FOVCircle.Radius = Settings.FOVRadius
     FOVCircle.Visible = Settings.ShowFOV
+
+    -- Safe Silent Aim Logic (Rotates Weapon Handle Safe)
+    if Settings.SilentAim then
+        local target = getClosestTarget()
+        if target and target.Character and target.Character:FindFirstChild(Settings.TargetPart) then
+            local character = LocalPlayer.Character
+            if character then
+                local tool = character:FindFirstChildOfClass("Tool")
+                if tool and tool:FindFirstChild("Handle") then
+                    tool.Handle.CFrame = CFrame.new(tool.Handle.Position, target.Character[Settings.TargetPart].Position)
+                end
+            end
+        end
+    end
+
+    -- Update ESP Radar
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if not ESP_Cache[player] then createESP(player) end
+            local drawings = ESP_Cache[player]
+            local char = player.Character
+
+            if Settings.EspEnabled and char and char:FindFirstChild("HumanoidRootPart") then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum and hum.Health > 0 then
+                    local hrpPos, onScreen = Camera:WorldToViewportPoint(char.HumanoidRootPart.Position)
+                    if onScreen then
+                        local inCover = isPlayerInCover(char)
+                        local statusColor = inCover and Color3.fromRGB(255, 40, 40) or Color3.fromRGB(40, 255, 100)
+                        local statusText = inCover and "[Cover 🟥]" or "[Open 🟩]"
+
+                        drawings.Text.Text = string.format("%s | %d HP\n%s", player.DisplayName, math.floor(hum.Health), statusText)
+                        drawings.Text.Position = Vector2.new(hrpPos.X, hrpPos.Y - 40)
+                        drawings.Text.Color = statusColor
+                        drawings.Text.Visible = true
+
+                        drawings.Box.Size = Vector2.new(2000 / hrpPos.Z, 3000 / hrpPos.Z)
+                        drawings.Box.Position = Vector2.new(hrpPos.X - drawings.Box.Size.X / 2, hrpPos.Y - drawings.Box.Size.Y / 2)
+                        drawings.Box.Color = statusColor
+                        drawings.Box.Visible = true
+                    else
+                        drawings.Text.Visible = false
+                        drawings.Box.Visible = false
+                    end
+                else
+                    drawings.Text.Visible = false
+                    drawings.Box.Visible = false
+                end
+            else
+                drawings.Text.Visible = false
+                drawings.Box.Visible = false
+            end
+        end
+    end
 end)
 
 Rayfield:Notify({
