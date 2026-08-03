@@ -1,232 +1,514 @@
+-- ================= =================
+--  CL Street Hub | Key System & GUI
+-- ================= =================
+
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
--- 1. إنشاء الشاشة الرئيسية (ScreenGui)
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "StreetHub_ESP_GUI"
-ScreenGui.Parent = CoreGui
-ScreenGui.ResetOnSpawn = false
+local setClipboard = setclipboard or toclipboard or syn
+local localPlayer = Players.LocalPlayer
+local camera = workspace.CurrentCamera
 
--- 2. إنشاء نافذة القائمة (Main Window)
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 220, 0, 130)
-MainFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
+-- المفتاح المطلوب لتشغيل الأداة
+local CORRECT_KEY = "VeRa-2026-HUB"
 
--- تصميم الحواف الدائرية
-local UICorner = Instance.new("UICorner", MainFrame)
-UICorner.CornerRadius = UDim.new(0, 8)
+-- إنشاء ScreenGui الرئيسي
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CL_StreetHub_GUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = CoreGui
 
-local UIStroke = Instance.new("UIStroke", MainFrame)
-UIStroke.Color = Color3.fromRGB(0, 255, 120)
-UIStroke.Thickness = 1.5
+----------------------------------------------------
+-- 🔑 1. نافذة نظام المفتاح (Key System UI)
+----------------------------------------------------
+local keyFrame = Instance.new("Frame")
+keyFrame.Size = UDim2.new(0, 320, 0, 210)
+keyFrame.Position = UDim2.new(0.5, -160, 0.5, -105)
+keyFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
+keyFrame.BorderColor3 = Color3.fromRGB(88, 101, 242)
+keyFrame.BorderSizePixel = 2
+keyFrame.Active = true
+keyFrame.Draggable = true
+keyFrame.ClipsDescendants = true
+keyFrame.Parent = screenGui
 
--- 3. عنوان القائمة (Title)
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 35)
-Title.BackgroundTransparency = 1
-Title.Text = "STREET HUB | ESP"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 13
-Title.Parent = MainFrame
+local keyTitle = Instance.new("TextLabel")
+keyTitle.Size = UDim2.new(1, 0, 0, 40)
+keyTitle.BackgroundColor3 = Color3.fromRGB(32, 32, 38)
+keyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyTitle.Text = "🔑 KEY SYSTEM | VeRa Team"
+keyTitle.Font = Enum.Font.GothamBold
+keyTitle.TextSize = 14
+keyTitle.Parent = keyFrame
 
--- 4. زر التفعيل والإطفاء (Toggle Button)
-local ToggleBtn = Instance.new("TextButton")
-ToggleBtn.Size = UDim2.new(0.85, 0, 0, 40)
-ToggleBtn.Position = UDim2.new(0.075, 0, 0.45, 0)
-ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
-ToggleBtn.Text = "Inventory ESP: OFF"
-ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 12
-ToggleBtn.Parent = MainFrame
+local keyInput = Instance.new("TextBox")
+keyInput.Size = UDim2.new(0.85, 0, 0, 40)
+keyInput.Position = UDim2.new(0.075, 0, 0.3, 0)
+keyInput.BackgroundColor3 = Color3.fromRGB(40, 40, 48)
+keyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyInput.PlaceholderText = "Enter Key Here..."
+keyInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+keyInput.Font = Enum.Font.Gotham
+keyInput.TextSize = 13
+keyInput.Text = ""
+keyInput.Parent = keyFrame
 
-local BtnCorner = Instance.new("UICorner", ToggleBtn)
-BtnCorner.CornerRadius = UDim.new(0, 6)
+local verifyButton = Instance.new("TextButton")
+verifyButton.Size = UDim2.new(0.85, 0, 0, 38)
+verifyButton.Position = UDim2.new(0.075, 0, 0.58, 0)
+verifyButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+verifyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+verifyButton.Text = "CHECK KEY"
+verifyButton.Font = Enum.Font.GothamBold
+verifyButton.TextSize = 13
+verifyButton.Parent = keyFrame
 
----------------------------------------------------
--- ⚙️ نظام الـ ESP البرمجي
----------------------------------------------------
-local ESP_Enabled = false
-local Storage = {}
+local keyNote = Instance.new("TextLabel")
+keyNote.Size = UDim2.new(1, 0, 0, 20)
+keyNote.Position = UDim2.new(0, 0, 0.82, 0)
+keyNote.BackgroundTransparency = 1
+keyNote.TextColor3 = Color3.fromRGB(160, 160, 170)
+keyNote.Text = "Default Key: " .. CORRECT_KEY
+keyNote.Font = Enum.Font.Gotham
+keyNote.TextSize = 11
+keyNote.Parent = keyFrame
 
-local function ClearStorage(player)
-	if Storage[player] then
-		if Storage[player].Billboard then
-			Storage[player].Billboard:Destroy()
-		end
-		if Storage[player].Connections then
-			for _, conn in ipairs(Storage[player].Connections) do
-				if conn then conn:Disconnect() end
-			end
-		end
-		Storage[player] = nil
-	end
+----------------------------------------------------
+-- 🎮 2. النافذة الرئيسية (Main Hub UI)
+----------------------------------------------------
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 260, 0, 395)
+mainFrame.Position = UDim2.new(0.5, -130, 0.5, -197)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 24)
+mainFrame.BorderColor3 = Color3.fromRGB(88, 101, 242)
+mainFrame.BorderSizePixel = 2
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.ClipsDescendants = true
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 40)
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Text = "⚡ CL STREET HUB ⚡"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 15
+title.Parent = mainFrame
+
+local function makeButton(text, yPos)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0.9, 0, 0, 36)
+    button.Position = UDim2.new(0.05, 0, 0, yPos)
+    button.BackgroundColor3 = Color3.fromRGB(35, 35, 42)
+    button.BorderColor3 = Color3.fromRGB(50, 50, 60)
+    button.TextColor3 = Color3.fromRGB(200, 200, 210)
+    button.Text = text .. " [OFF]"
+    button.Font = Enum.Font.GothamSemibold
+    button.TextSize = 12
+    button.Parent = mainFrame
+    return button
 end
 
-local function MonitorInventory(player)
-	ClearStorage(player)
-	if player == LocalPlayer then return end
+local fovButton = makeButton("FOV & Tracers", 50)
+local espButton = makeButton("ESP (Box + Skeleton)", 94)
+local autoHitButton = makeButton("Auto Hit Fire", 138)
+local staminaButton = makeButton("Infinite Stamina", 182)
+local configButton = makeButton("Fast Fire & 99999 Config", 226)
 
-	local billboard = Instance.new("BillboardGui")
-	billboard.Name = "InvTextESP"
-	billboard.AlwaysOnTop = true
-	billboard.Size = UDim2.new(0, 300, 0, 25)
-	billboard.Active = false
-	billboard.StudsOffset = Vector3.new(0, 3, 0)
-	billboard.Enabled = false
-	
-	local container = Instance.new("Frame", billboard)
-	container.Size = UDim2.new(1, 0, 1, 0)
-	container.BackgroundTransparency = 1
-	
-	local layout = Instance.new("UIListLayout", container)
-	layout.FillDirection = Enum.FillDirection.Horizontal
-	layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-	layout.VerticalAlignment = Enum.VerticalAlignment.Center
-	layout.Padding = UDim.new(0, 4)
+local discordButton = Instance.new("TextButton")
+discordButton.Size = UDim2.new(0.9, 0, 0, 36)
+discordButton.Position = UDim2.new(0.05, 0, 0, 280)
+discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+discordButton.Text = "Join Our Discord"
+discordButton.Font = Enum.Font.GothamBold
+discordButton.TextSize = 12
+discordButton.Parent = mainFrame
 
-	Storage[player] = {
-		Billboard = billboard,
-		Container = container,
-		Connections = {}
-	}
+local credit = Instance.new("TextLabel")
+credit.Size = UDim2.new(1, 0, 0, 25)
+credit.Position = UDim2.new(0, 0, 0, 365)
+credit.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+credit.TextColor3 = Color3.fromRGB(140, 140, 150)
+credit.Text = "Developed by VeRa Team"
+credit.Font = Enum.Font.Gotham
+credit.TextSize = 11
+credit.Parent = mainFrame
 
-	local function UpdateItems()
-		if not Storage[player] or not Storage[player].Container then return end
-		
-		for _, child in ipairs(Storage[player].Container:GetChildren()) do
-			if child:IsA("TextLabel") then
-				child:Destroy()
-			end
-		end
+----------------------------------------------------
+-- ⚙️ 3. المتغيرات والمنطق البرمجي (Logic & Features)
+----------------------------------------------------
+local fovEnabled = false
+local espEnabled = false
+local autoHitEnabled = false
+local staminaEnabled = false
+local configEnabled = false
+local fovRadius = 120
 
-		if not ESP_Enabled then
-			billboard.Enabled = false
-			return
-		end
+local fovCircle = Drawing.new("Circle")
+fovCircle.Visible = false
+fovCircle.Radius = fovRadius
+fovCircle.Color = Color3.fromRGB(255, 255, 255)
+fovCircle.Thickness = 1
+fovCircle.Filled = false
+fovCircle.Transparency = 0.7
 
-		local Character = player.Character
-		local Backpack = player:FindFirstChild("Backpack")
-		local TotalItems = {}
+local boxes, names, texts, tracers = {}, {}, {}, {}
+local weaponColors = {
+    Revolver = Color3.fromRGB(255, 0, 0),
+    GrenadeLauncher = Color3.fromRGB(0, 255, 0),
+    LMG = Color3.fromRGB(255, 128, 0),
+    RailGun = Color3.fromRGB(255, 0, 0)
+}
 
-		if Character then
-			for _, tool in ipairs(Character:GetChildren()) do
-				if tool:IsA("Tool") then
-					table.insert(TotalItems, tool.Name)
-				end
-			end
-		end
+-- التحقق من المفتاح
+verifyButton.MouseButton1Click:Connect(function()
+    if keyInput.Text == CORRECT_KEY then
+        verifyButton.Text = "SUCCESS!"
+        verifyButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+        task.wait(0.5)
+        
+        -- إخفاء نافذة المفتاح وإظهار القائمة بـ Animation
+        keyFrame:Destroy()
+        mainFrame.Visible = true
+        mainFrame.Size = UDim2.new(0, 0, 0, 0)
+        mainFrame.BackgroundTransparency = 1
+        TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 260, 0, 395),
+            BackgroundTransparency = 0
+        }):Play()
+    else
+        verifyButton.Text = "WRONG KEY!"
+        verifyButton.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
+        task.wait(1.5)
+        verifyButton.Text = "CHECK KEY"
+        verifyButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    end
+end)
 
-		if Backpack then
-			for _, tool in ipairs(Backpack:GetChildren()) do
-				if tool:IsA("Tool") then
-					table.insert(TotalItems, tool.Name)
-				end
-			end
-		end
-
-		if #TotalItems == 0 then
-			billboard.Enabled = false
-			return
-		else
-			billboard.Enabled = true
-		end
-
-		for _, itemName in ipairs(TotalItems) do
-			local textLabel = Instance.new("TextLabel", Storage[player].Container)
-			textLabel.Size = UDim2.new(0, 0, 1, 0)
-			textLabel.AutomaticSize = Enum.AutomaticSize.X
-			textLabel.BackgroundTransparency = 1
-			textLabel.Text = "[" .. itemName .. "]"
-			textLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
-			textLabel.Font = Enum.Font.GothamBold
-			textLabel.TextSize = 11
-			textLabel.TextStrokeTransparency = 0.2
-			textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-		end
-	end
-
-	local function SetupCharacter(character)
-		if not Storage[player] then return end
-		
-		local root = character:WaitForChild("HumanoidRootPart", 10)
-		if root then
-			billboard.Adornee = root
-			billboard.Parent = ScreenGui
-		end
-		
-		UpdateItems()
-		
-		local cAdd = character.ChildAdded:Connect(UpdateItems)
-		local cRem = character.ChildRemoved:Connect(UpdateItems)
-		table.insert(Storage[player].Connections, cAdd)
-		table.insert(Storage[player].Connections, cRem)
-	end
-
-	if player.Character then SetupCharacter(player.Character) end
-	local charAddedConn = player.CharacterAdded:Connect(SetupCharacter)
-	table.insert(Storage[player].Connections, charAddedConn)
-
-	local function SetupBackpackListeners()
-		local Backpack = player:WaitForChild("Backpack", 10)
-		if Backpack and Storage[player] then
-			local bConn = Backpack.ChildAdded:Connect(UpdateItems)
-			local bRem = Backpack.ChildRemoved:Connect(UpdateItems)
-			table.insert(Storage[player].Connections, bConn)
-			table.insert(Storage[player].Connections, bRem)
-		end
-	end
-
-	SetupBackpackListeners()
-	
-	local bpConn = player.ChildAdded:Connect(function(child)
-		if child.Name == "Backpack" then
-			SetupBackpackListeners()
-			UpdateItems()
-		end
-	end)
-	table.insert(Storage[player].Connections, bpConn)
+local function hidePlayer(player)
+    if boxes[player] then boxes[player].Visible = false end
+    if texts[player] then texts[player].Visible = false end
+    if tracers[player] then tracers[player].Visible = false end
+    if names[player] then
+        for _, line in ipairs(names[player]) do line.Visible = false end
+    end
 end
 
--- 5. تشغيل التثبيت للكل
-for _, player in ipairs(Players:GetPlayers()) do
-	MonitorInventory(player)
+local function removePlayer(player)
+    if boxes[player] then boxes[player]:Remove(); boxes[player] = nil end
+    if texts[player] then texts[player]:Remove(); texts[player] = nil end
+    if tracers[player] then tracers[player]:Remove(); tracers[player] = nil end
+    if names[player] then
+        for _, line in ipairs(names[player]) do line:Remove() end
+        names[player] = nil
+    end
 end
-Players.PlayerAdded:Connect(MonitorInventory)
-Players.PlayerRemoving:Connect(ClearStorage)
 
--- 6. برمجة زر التفعيل والإيقاف
-ToggleBtn.MouseButton1Click:Connect(function()
-	ESP_Enabled = not ESP_Enabled
-	
-	if ESP_Enabled then
-		ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100) -- أخضر (مفعل)
-		ToggleBtn.Text = "Inventory ESP: ON"
-	else
-		ToggleBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50) -- أحمر (معطل)
-		ToggleBtn.Text = "Inventory ESP: OFF"
-	end
-	
-	-- تحديث حالة الظهور فوراً لجميع اللاعبين
-	for plr, data in pairs(Storage) do
-		if data.Billboard then
-			if not ESP_Enabled then
-				data.Billboard.Enabled = false
-			else
-				-- إعادة الاحتساب
-				if plr.Character then
-					local toolCount = #plr.Character:GetChildren() + (plr:FindFirstChild("Backpack") and #plr:FindFirstChild("Backpack"):GetChildren() or 0)
-					data.Billboard.Enabled = (toolCount > 0)
-				end
-			end
-		end
-	end
+local function clearAll()
+    for _, player in ipairs(Players:GetPlayers()) do
+        removePlayer(player)
+    end
+end
+
+discordButton.MouseButton1Click:Connect(function()
+    if setClipboard then
+        setClipboard("https://discord.gg/ZtdGTPPrp9")
+        discordButton.Text = "Copied to Clipboard!"
+        task.wait(1.5)
+        discordButton.Text = "Join Our Discord"
+    else
+        discordButton.Text = "Unsupported Exploit"
+        task.wait(1.5)
+        discordButton.Text = "Join Our Discord"
+    end
+end)
+
+fovButton.MouseButton1Click:Connect(function()
+    fovEnabled = not fovEnabled
+    fovButton.Text = "FOV & Tracers " .. (fovEnabled and "[ON]" or "[OFF]")
+    fovButton.TextColor3 = fovEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 200, 210)
+    fovCircle.Visible = fovEnabled
+    if not fovEnabled then
+        for _, tracer in pairs(tracers) do
+            if tracer then tracer.Visible = false end
+        end
+    end
+end)
+
+espButton.MouseButton1Click:Connect(function()
+    espEnabled = not espEnabled
+    espButton.Text = "ESP " .. (espEnabled and "[ON]" or "[OFF]")
+    espButton.TextColor3 = espEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 200, 210)
+    if not espEnabled then clearAll() end
+end)
+
+autoHitButton.MouseButton1Click:Connect(function()
+    autoHitEnabled = not autoHitEnabled
+    autoHitButton.Text = "Auto Hit Fire " .. (autoHitEnabled and "[ON]" or "[OFF]")
+    autoHitButton.TextColor3 = autoHitEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 200, 210)
+end)
+
+staminaButton.MouseButton1Click:Connect(function()
+    staminaEnabled = not staminaEnabled
+    staminaButton.Text = "Infinite Stamina " .. (staminaEnabled and "[ON]" or "[OFF]")
+    staminaButton.TextColor3 = staminaEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 200, 210)
+end)
+
+configButton.MouseButton1Click:Connect(function()
+    configEnabled = not configEnabled
+    configButton.Text = "Fast Fire & Config " .. (configEnabled and "[ON]" or "[OFF]")
+    configButton.TextColor3 = configEnabled and Color3.fromRGB(46, 204, 113) or Color3.fromRGB(200, 200, 210)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    removePlayer(player)
+end)
+
+local function getWeaponInfo(player)
+    local labels = {}
+    local backpack = player:FindFirstChildOfClass("Backpack")
+    if backpack then
+        for _, tool in ipairs(backpack:GetChildren()) do
+            if weaponColors[tool.Name] then table.insert(labels, tool.Name) end
+        end
+    end
+    if player.Character then
+        for _, tool in ipairs(player.Character:GetChildren()) do
+            if tool:IsA("Tool") and weaponColors[tool.Name] then table.insert(labels, tool.Name) end
+        end
+    end
+    if #labels > 0 then
+        return table.concat(labels, ", "), Color3.fromRGB(0, 255, 255)
+    end
+    return "", nil
+end
+
+-- Fast Fire Loops
+task.spawn(function()
+    while true do
+        if configEnabled then
+            pcall(function()
+                for _, container in ipairs({ localPlayer.Backpack, localPlayer.Character }) do
+                    if container then
+                        for _, tool in ipairs(container:GetChildren()) do
+                            if tool:IsA("Tool") then
+                                local configuration = tool:FindFirstChild("Configuration")
+                                if configuration then
+                                    for _, value in ipairs(configuration:GetChildren()) do
+                                        if value:IsA("NumberValue") or value:IsA("IntValue") then
+                                            local name = value.Name:lower()
+                                            if name:find("hitdamage") or name:find("damage") or name:find("dmg") or name:find("ammo") or name:find("capacity") then
+                                                value.Value = 99999
+                                            elseif name:find("fire") or name:find("rate") or name:find("delay") or name:find("cooldown") then
+                                                value.Value = 0.001
+                                            elseif name:find("spread") or name:find("recoil") or name:find("kick") then
+                                                value.Value = 0
+                                            end
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+        task.wait(0.2)
+    end
+end)
+
+-- Render Steering
+RunService.RenderStepped:Connect(function()
+    fovCircle.Position = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= localPlayer then
+            local character = player.Character
+            local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+            if character and rootPart then
+                local screenPos, onScreen = camera:WorldToViewportPoint(rootPart.Position)
+                if onScreen then
+                    if fovEnabled then
+                        if not tracers[player] then
+                            local line = Drawing.new("Line")
+                            line.Thickness = 1.5
+                            tracers[player] = line
+                        end
+                        local tracer = tracers[player]
+                        tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+                        tracer.To = Vector2.new(screenPos.X, screenPos.Y)
+                        tracer.Color = Color3.fromRGB(255, 0, 0)
+                        tracer.Visible = true
+                    else
+                        if tracers[player] then tracers[player].Visible = false end
+                        if espEnabled then
+                            if not boxes[player] then
+                                local square = Drawing.new("Square")
+                                square.Visible = false
+                                square.Thickness = 1
+                                square.Color = Color3.fromRGB(255, 255, 255)
+                                square.Filled = false
+                                boxes[player] = square
+                            end
+                            local box = boxes[player]
+                            local topPos = camera:WorldToViewportPoint(rootPart.Position + Vector3.new(0, 0.5, 0))
+                            local height = math.abs(topPos.Y - camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0, 3, 0)).Y)
+                            local width = height / 2
+                            box.Size = Vector2.new(width, height)
+                            box.Position = Vector2.new(topPos.X - width / 2, topPos.Y)
+                            box.Visible = true
+                            
+                            local weaponText, weaponColor = getWeaponInfo(player)
+                            if weaponText ~= "" then
+                                if not texts[player] then
+                                    local text = Drawing.new("Text")
+                                    text.Visible = false
+                                    text.Size = 12
+                                    text.Center = true
+                                    text.Outline = true
+                                    texts[player] = text
+                                end
+                                local text = texts[player]
+                                text.Text = player.Name .. " [" .. weaponText .. "]"
+                                text.Color = weaponColor
+                                text.Position = Vector2.new(topPos.X, topPos.Y - 35)
+                                text.Visible = true
+                            else
+                                if texts[player] then texts[player].Visible = false end
+                                if not names[player] then
+                                    names[player] = {
+                                        Drawing.new("Line"), Drawing.new("Line"),
+                                        Drawing.new("Line"), Drawing.new("Line"),
+                                        Drawing.new("Line"), Drawing.new("Line")
+                                    }
+                                    for _, line in ipairs(names[player]) do
+                                        line.Visible = false
+                                        line.Thickness = 1
+                                        line.Color = Color3.fromRGB(0, 255, 0)
+                                    end
+                                end
+                                local lines = names[player]
+                                local torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
+                                if character and torso then
+                                    local headPos = camera:WorldToViewportPoint(rootPart.Position)
+                                    local torsoPos = camera:WorldToViewportPoint(torso.Position)
+                                    local footPos = camera:WorldToViewportPoint(rootPart.Position)
+                                    lines[1].From = Vector2.new(headPos.X, headPos.Y)
+                                    lines[1].To = Vector2.new(torsoPos.X, torsoPos.Y)
+                                    lines[1].Visible = true
+                                    
+                                    if character:FindFirstChild("LeftHand") or character:FindFirstChild("LeftLowerArm") or character:FindFirstChild("Left Arm") then
+                                        local limbPos = camera:WorldToViewportPoint((character:FindFirstChild("LeftHand") or character:FindFirstChild("LeftLowerArm") or character:FindFirstChild("Left Arm")).Position)
+                                        lines[2].From = Vector2.new(torsoPos.X - height / 2 * 0.25, torsoPos.Y)
+                                        lines[2].To = Vector2.new(limbPos.X, limbPos.Y)
+                                        lines[2].Visible = true
+                                    else names[player][2].Visible = false end
+                                    
+                                    if character:FindFirstChild("RightHand") or character:FindFirstChild("RightLowerArm") or character:FindFirstChild("Right Arm") then
+                                        local limbPos = camera:WorldToViewportPoint((character:FindFirstChild("RightHand") or character:FindFirstChild("RightLowerArm") or character:FindFirstChild("Right Arm")).Position)
+                                        lines[3].From = Vector2.new(torsoPos.X + height / 2 * 0.25, torsoPos.Y)
+                                        lines[3].To = Vector2.new(limbPos.X, limbPos.Y)
+                                        lines[3].Visible = true
+                                    else names[player][3].Visible = false end
+                                    
+                                    lines[4].From = Vector2.new(torsoPos.X, torsoPos.Y)
+                                    lines[4].To = Vector2.new(footPos.X, footPos.Y)
+                                    lines[4].Visible = true
+                                    
+                                    if character:FindFirstChild("LeftFoot") or character:FindFirstChild("LeftLowerLeg") or character:FindFirstChild("Left Leg") then
+                                        local limbPos = camera:WorldToViewportPoint((character:FindFirstChild("LeftFoot") or character:FindFirstChild("LeftLowerLeg") or character:FindFirstChild("Left Leg")).Position)
+                                        lines[5].From = Vector2.new(footPos.X, footPos.Y)
+                                        lines[5].To = Vector2.new(limbPos.X, limbPos.Y)
+                                        lines[5].Visible = true
+                                    else names[player][5].Visible = false end
+                                    
+                                    if character:FindFirstChild("RightFoot") or character:FindFirstChild("RightLowerLeg") or character:FindFirstChild("Right Leg") then
+                                        local limbPos = camera:WorldToViewportPoint((character:FindFirstChild("RightFoot") or character:FindFirstChild("RightLowerLeg") or character:FindFirstChild("Right Leg")).Position)
+                                        lines[6].From = Vector2.new(footPos.X, footPos.Y)
+                                        lines[6].To = Vector2.new(limbPos.X, limbPos.Y)
+                                        lines[6].Visible = true
+                                    else names[player][6].Visible = false end
+                                end
+                            end
+                        else
+                            if boxes[player] then boxes[player].Visible = false end
+                            if texts[player] then texts[player].Visible = false end
+                            if names[player] then
+                                for _, line in ipairs(names[player]) do line.Visible = false end
+                            end
+                        end
+                    end
+                else hidePlayer(player) end
+            else hidePlayer(player) end
+        end
+    end
+end)
+
+-- Auto Equip
+task.spawn(function()
+    while true do
+        if autoHitEnabled then
+            pcall(function()
+                local character = localPlayer.Character
+                local humanoid = character and character:FindFirstChild("Humanoid")
+                local backpack = localPlayer:FindFirstChildOfClass("Backpack")
+                if character and backpack then
+                    local equipped = character:FindFirstChild("AK47")
+                    if not equipped then
+                        local tool = backpack:FindFirstChild("AK47")
+                        if tool then humanoid:EquipTool(tool) end
+                    end
+                end
+            end)
+        end
+        task.wait(0.5)
+    end
+end)
+
+-- Auto Hit Network Loop
+task.spawn(function()
+    while true do
+        if autoHitEnabled then
+            pcall(function()
+                local character = localPlayer.Character
+                local weapon = character and character:FindFirstChild("AK47")
+                if weapon then
+                    local head = character:FindFirstChild("Head")
+                    if head then
+                        local weaponHit = ReplicatedStorage:WaitForChild("WeaponsSystem"):WaitForChild("Network"):WaitForChild("WeaponHit")
+                        weaponHit:FireServer(character:FindFirstChild("AK47"), {
+                            p = character:FindFirstChild("HumanoidRootPart").Position,
+                            pid = 1,
+                            part = head,
+                            d = 2.0970621109009,
+                            maxDist = 2.0633964538574,
+                            h = character:FindFirstChild("Humanoid"),
+                            m = Enum.Material.Plastic,
+                            n = Vector3.new(-0.92371094226837, 0.31652227044106, 0.21580512821674),
+                            t = 0.011516523823044,
+                            sid = 1
+                        })
+                    end
+                end
+            end)
+        end
+        task.wait(0.1)
+    end
+end)
+
+-- Stamina Remote Loop
+task.spawn(function()
+    while true do
+        if staminaEnabled then
+            pcall(function()
+                ReplicatedStorage:WaitForChild("SuperJuice"):FireServer(true)
+            end)
+        end
+        task.wait(0.5)
+    end
 end)
