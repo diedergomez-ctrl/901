@@ -1,34 +1,32 @@
 -- ============================================================
--- KLO 901 MODERN DARK HUB UI - EXACT REPLICA EDITION
--- Rights: 901 | True Silent Aim + Advanced Radar ESP Engine
+-- KLO 901 SAFE SYSTEM - ANTI-DETECTION EDITION
+-- Rights: 901 | Safe Silent Aim + Modern Dark UI + ESP Radar
 -- ============================================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-LocalPlayer = Players.LocalPlayer
+local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local Camera = workspace.CurrentCamera
 
 -- ⚙️ [SETTINGS STATE]
 local Settings = {
     SilentAim = false,
-    FOVRadius = 150,
+    FOVRadius = 130,
     ShowFOV = false,
     TargetPart = "Head",
     
     EspEnabled = false,
-    ShowCover = true,
-    ShowWeapon = true,
-    ShowHealth = true
+    ShowCover = true
 }
 
--- 🎯 [TRUE SILENT AIM ENGINE - MAGIC BULLETS]
+-- 🎯 [SAFE SILENT AIM ENGINE - NO METATABLE HOOK]
 local FOVCircle = Drawing.new("Circle")
-FOVCircle.Color = Color3.fromRGB(255, 255, 255)
+FOVCircle.Color = Color3.fromRGB(0, 200, 255)
 FOVCircle.Thickness = 1.2
 FOVCircle.NumSides = 80
 FOVCircle.Filled = false
-FOVCircle.Transparency = 0.6
+FOVCircle.Transparency = 0.7
 FOVCircle.Visible = false
 
 local function getClosestTarget()
@@ -57,29 +55,21 @@ local function getClosestTarget()
     return closestPlayer
 end
 
--- Hooking Mouse Index for Magic Bullets (Silent Aim Logic)
-local gmt = getrawmetatable(game)
-local oldIndex = gmt.__index
-setreadonly(gmt, false)
-
-gmt.__index = newcclosure(function(self, idx)
-    if not checkcaller() and Settings.SilentAim then
-        if idx == "Hit" or idx == "Target" then
-            local target = getClosestTarget()
-            if target and target.Character and target.Character:FindFirstChild(Settings.TargetPart) then
-                local targetPart = target.Character[Settings.TargetPart]
-                if idx == "Hit" then
-                    return targetPart.CFrame
-                elseif idx == "Target" then
-                    return targetPart
+-- Safe Silent Aim via Tool Manipulation
+RunService.Stepped:Connect(function()
+    if Settings.SilentAim then
+        local target = getClosestTarget()
+        if target and target.Character and target.Character:FindFirstChild(Settings.TargetPart) then
+            local character = LocalPlayer.Character
+            if character then
+                local tool = character:FindFirstChildOfClass("Tool")
+                if tool and tool:FindFirstChild("Handle") then
+                    tool.Handle.CFrame = CFrame.new(tool.Handle.Position, target.Character[Settings.TargetPart].Position)
                 end
             end
         end
     end
-    return oldIndex(self, idx)
 end)
-
-setreadonly(gmt, true)
 
 -- 🎨 [WEAPON & COVER CHECK FOR ESP]
 local function getWeaponColor(character)
@@ -175,17 +165,17 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- 🖥️ [EXACT UI REPLICA BUILDER]
+-- 🖥️ [EXACT UI REPLICA BUILDER - SAFE CORE]
 local Gui = Instance.new("ScreenGui")
-Gui.Name = "KLO_901_UltraUI"
+Gui.Name = "KLO_901_SafeUI"
 Gui.ResetOnSpawn = false
 Gui.Parent = (gethui and gethui()) or game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 310, 0, 460)
-Main.Position = UDim2.new(0.7, 0, 0.2, 0)
+Main.Size = UDim2.new(0, 310, 0, 440)
+Main.Position = UDim2.new(0.65, 0, 0.2, 0)
 Main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
-Main.BackgroundTransparency = 0.1
+Main.BackgroundTransparency = 0.05
 Main.Active = true
 Main.Draggable = true
 Main.Parent = Gui
@@ -223,7 +213,7 @@ Title.Parent = Header
 local SubTitle = Instance.new("TextLabel")
 SubTitle.Size = UDim2.new(1, -60, 0, 15)
 SubTitle.Position = UDim2.new(0, 50, 0, 28)
-SubTitle.Text = "[901] - Roblox Script"
+SubTitle.Text = "[901] - Safe Edition"
 SubTitle.TextColor3 = Color3.fromRGB(130, 130, 145)
 SubTitle.Font = Enum.Font.Gotham
 SubTitle.TextSize = 10
@@ -273,13 +263,6 @@ local TabList = Instance.new("UIListLayout")
 TabList.Parent = TabsContainer
 TabList.Padding = UDim.new(0, 6)
 
--- Pages Overlay Container
-local PageContent = Instance.new("Frame")
-PageContent.Size = UDim2.new(1, 0, 1, 0)
-PageContent.BackgroundTransparency = 1
-PageContent.Visible = false
-PageContent.Parent = Main
-
 local TabButtons = {}
 
 local function addTabButton(icon, name)
@@ -322,7 +305,6 @@ local function addTabButton(icon, name)
     return Btn
 end
 
--- Toggles Functions for Features
 local function createFeatureToggle(parent, titleText, default, callback)
     local ToggleFrame = Instance.new("Frame")
     ToggleFrame.Size = UDim2.new(1, 0, 0, 34)
@@ -357,21 +339,21 @@ local function createFeatureToggle(parent, titleText, default, callback)
     end)
 end
 
--- Creating Tabs matching Image
+-- Creating UI Tabs
 addTabButton("♟️", "General")
-local CombatBtn = addTabButton("⚔️", "Combat")
+addTabButton("⚔️", "Combat")
 addTabButton("🎯", "Weapon Mod")
 addTabButton("🎨", "Cosmetic")
-local EspBtn = addTabButton("👁️", "Esp")
+addTabButton("👁️", "Esp")
 addTabButton("🚗", "Vehicle")
 addTabButton("⚙️", "Misc")
 addTabButton("🖥️", "Server")
 addTabButton("⚙️", "Config")
 
--- Features Container Popup
+-- Floating Features Control
 local FeaturesWindow = Instance.new("Frame")
-FeaturesWindow.Size = UDim2.new(0, 200, 0, 220)
-FeaturesWindow.Position = UDim2.new(0, -210, 0, 50)
+FeaturesWindow.Size = UDim2.new(0, 190, 0, 180)
+FeaturesWindow.Position = UDim2.new(0, -200, 0, 50)
 FeaturesWindow.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
 FeaturesWindow.Parent = Main
 Instance.new("UICorner", FeaturesWindow).CornerRadius = UDim.new(0, 10)
@@ -382,6 +364,6 @@ local FList = Instance.new("UIListLayout")
 FList.Parent = FeaturesWindow
 FList.Padding = UDim.new(0, 6)
 
-createFeatureToggle(FeaturesWindow, "Silent Aim (طلق سحري)", Settings.SilentAim, function(s) Settings.SilentAim = s end)
-createFeatureToggle(FeaturesWindow, "Show FOV (دائرة الاصطياد)", Settings.ShowFOV, function(s) Settings.ShowFOV = s end)
+createFeatureToggle(FeaturesWindow, "Safe Silent Aim (تصويب آمن)", Settings.SilentAim, function(s) Settings.SilentAim = s end)
+createFeatureToggle(FeaturesWindow, "Show FOV (دائرة التحديد)", Settings.ShowFOV, function(s) Settings.ShowFOV = s end)
 createFeatureToggle(FeaturesWindow, "ESP Radar (رادار الكفر)", Settings.EspEnabled, function(s) Settings.EspEnabled = s end)
