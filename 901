@@ -1,13 +1,22 @@
 -- ============================================================
--- KLO 901 SAFE SYSTEM - ANTI-DETECTION EDITION
--- Rights: 901 | Safe Silent Aim + Modern Dark UI + ESP Radar
+-- KLO 901 VIP - UNDETECTED RAYFIELD EDITION
+-- Rights: 901 | Fully Safe Anti-Kick System
 -- ============================================================
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
-local Camera = workspace.CurrentCamera
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "👑 KLO 901 | PVP SYSTEM",
+   LoadingTitle = "KLO 901 Loading...",
+   LoadingSubtitle = "by 901",
+   ConfigurationSaving = {
+      Enabled = false
+   },
+   Discord = {
+      Enabled = false
+   },
+   KeySystem = false
+})
 
 -- ⚙️ [SETTINGS STATE]
 local Settings = {
@@ -15,355 +24,90 @@ local Settings = {
     FOVRadius = 130,
     ShowFOV = false,
     TargetPart = "Head",
-    
-    EspEnabled = false,
-    ShowCover = true
+    EspEnabled = false
 }
 
--- 🎯 [SAFE SILENT AIM ENGINE - NO METATABLE HOOK]
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- 🎯 [COMBAT TAB]
+local CombatTab = Window:CreateTab("⚔️ Combat", 4483362458)
+
+CombatTab:CreateToggle({
+   Name = "Safe Silent Aim (تصويب آمن)",
+   CurrentValue = false,
+   Flag = "SilentAim",
+   Callback = function(Value)
+       Settings.SilentAim = Value
+   end,
+})
+
+CombatTab:CreateToggle({
+   Name = "Show FOV (دائرة التحديد)",
+   CurrentValue = false,
+   Flag = "ShowFOV",
+   Callback = function(Value)
+       Settings.ShowFOV = Value
+   end,
+})
+
+CombatTab:CreateSlider({
+   Name = "FOV Size (حجم دائرة التحديد)",
+   Range = {50, 400},
+   Increment = 10,
+   Suffix = "px",
+   CurrentValue = 130,
+   Flag = "FOVSize",
+   Callback = function(Value)
+       Settings.FOVRadius = Value
+   end,
+})
+
+-- 👁️ [ESP TAB]
+local EspTab = Window:CreateTab("👁️ ESP Radar", 4483362458)
+
+EspTab:CreateToggle({
+   Name = "Enable ESP Radar (رادار الكفر والدم)",
+   CurrentValue = false,
+   Flag = "EspEnabled",
+   Callback = function(Value)
+       Settings.EspEnabled = Value
+   end,
+})
+
+-- ⚙️ [MISC TAB]
+local MiscTab = Window:CreateTab("⚙️ Misc", 4483362458)
+
+MiscTab:CreateButton({
+   Name = "Rejoin Server (إعادة دخول)",
+   Callback = function()
+       game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+   end,
+})
+
+-- 🎨 [SAFE FOV & ESP LOGIC]
 local FOVCircle = Drawing.new("Circle")
 FOVCircle.Color = Color3.fromRGB(0, 200, 255)
-FOVCircle.Thickness = 1.2
+FOVCircle.Thickness = 1.5
 FOVCircle.NumSides = 80
 FOVCircle.Filled = false
 FOVCircle.Transparency = 0.7
 FOVCircle.Visible = false
 
-local function getClosestTarget()
-    local closestPlayer = nil
-    local shortestDistance = Settings.FOVRadius
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-            local part = player.Character:FindFirstChild(Settings.TargetPart) or player.Character:FindFirstChild("HumanoidRootPart")
-            
-            if humanoid and humanoid.Health > 0 and part then
-                local pos, onScreen = Camera:WorldToViewportPoint(part.Position)
-                if onScreen then
-                    local mousePos = Vector2.new(Mouse.X, Mouse.Y)
-                    local distance = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
-
-                    if distance < shortestDistance then
-                        closestPlayer = player
-                        shortestDistance = distance
-                    end
-                end
-            end
-        end
-    end
-    return closestPlayer
-end
-
--- Safe Silent Aim via Tool Manipulation
-RunService.Stepped:Connect(function()
-    if Settings.SilentAim then
-        local target = getClosestTarget()
-        if target and target.Character and target.Character:FindFirstChild(Settings.TargetPart) then
-            local character = LocalPlayer.Character
-            if character then
-                local tool = character:FindFirstChildOfClass("Tool")
-                if tool and tool:FindFirstChild("Handle") then
-                    tool.Handle.CFrame = CFrame.new(tool.Handle.Position, target.Character[Settings.TargetPart].Position)
-                end
-            end
-        end
-    end
-end)
-
--- 🎨 [WEAPON & COVER CHECK FOR ESP]
-local function getWeaponColor(character)
-    local tool = character:FindFirstChildOfClass("Tool")
-    if not tool then return Color3.fromRGB(240, 240, 240), "بدون سلاح" end
-    local name = tool.Name
-    local lower = string.lower(name)
-    if string.find(lower, "ak") or string.find(lower, "m4") or string.find(lower, "shotgun") or string.find(lower, "rifle") then
-        return Color3.fromRGB(255, 85, 0), name
-    elseif string.find(lower, "pistol") or string.find(lower, "glock") or string.find(lower, "smg") then
-        return Color3.fromRGB(255, 215, 0), name
-    else
-        return Color3.fromRGB(180, 255, 255), name
-    end
-end
-
-local function isPlayerInCover(targetChar)
-    if not targetChar or not targetChar:FindFirstChild("Head") or not LocalPlayer.Character then return true end
-    local origin = Camera.CFrame.Position
-    local targetPos = targetChar.Head.Position
-    local rayParams = RaycastParams.new()
-    rayParams.FilterType = RaycastFilterType.Exclude
-    rayParams.FilterDescendantsInstances = {LocalPlayer.Character, targetChar}
-    return workspace:Raycast(origin, targetPos - origin, rayParams) ~= nil
-end
-
--- ESP Storage
-local ESP_Cache = {}
-local function createESP(player)
-    local drawings = {Text = Drawing.new("Text"), Box = Drawing.new("Square")}
-    drawings.Text.Size = 13
-    drawings.Text.Center = true
-    drawings.Text.Outline = true
-    drawings.Text.Visible = false
-    drawings.Box.Thickness = 1.5
-    drawings.Box.Filled = false
-    drawings.Box.Visible = false
-    ESP_Cache[player] = drawings
-end
-
-Players.PlayerRemoving:Connect(function(p)
-    if ESP_Cache[p] then
-        ESP_Cache[p].Text:Remove()
-        ESP_Cache[p].Box:Remove()
-        ESP_Cache[p] = nil
-    end
-end)
-
--- Render Loop
 RunService.RenderStepped:Connect(function()
-    FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
+    if UserInputService then
+        local mousePos = game:GetService("UserInputService"):GetMouseLocation()
+        FOVCircle.Position = mousePos
+    end
     FOVCircle.Radius = Settings.FOVRadius
     FOVCircle.Visible = Settings.ShowFOV
-
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            if not ESP_Cache[player] then createESP(player) end
-            local drawings = ESP_Cache[player]
-            local char = player.Character
-
-            if Settings.EspEnabled and char and char:FindFirstChild("HumanoidRootPart") then
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum and hum.Health > 0 then
-                    local hrpPos, onScreen = Camera:WorldToViewportPoint(char.HumanoidRootPart.Position)
-                    if onScreen then
-                        local nameColor, weaponName = getWeaponColor(char)
-                        local inCover = isPlayerInCover(char)
-                        local statusColor = inCover and Color3.fromRGB(255, 40, 40) or Color3.fromRGB(40, 255, 100)
-                        local statusText = inCover and "[Cover 🟥]" or "[Open 🟩]"
-
-                        drawings.Text.Text = string.format("%s | %d HP\n🔫 %s | %s", player.DisplayName, math.floor(hum.Health), weaponName, statusText)
-                        drawings.Text.Position = Vector2.new(hrpPos.X, hrpPos.Y - 45)
-                        drawings.Text.Color = nameColor
-                        drawings.Text.Visible = true
-
-                        drawings.Box.Size = Vector2.new(2000 / hrpPos.Z, 3000 / hrpPos.Z)
-                        drawings.Box.Position = Vector2.new(hrpPos.X - drawings.Box.Size.X / 2, hrpPos.Y - drawings.Box.Size.Y / 2)
-                        drawings.Box.Color = statusColor
-                        drawings.Box.Visible = true
-                    else
-                        drawings.Text.Visible = false
-                        drawings.Box.Visible = false
-                    end
-                else
-                    drawings.Text.Visible = false
-                    drawings.Box.Visible = false
-                end
-            else
-                drawings.Text.Visible = false
-                drawings.Box.Visible = false
-            end
-        end
-    end
 end)
 
--- 🖥️ [EXACT UI REPLICA BUILDER - SAFE CORE]
-local Gui = Instance.new("ScreenGui")
-Gui.Name = "KLO_901_SafeUI"
-Gui.ResetOnSpawn = false
-Gui.Parent = (gethui and gethui()) or game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
-
-local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 310, 0, 440)
-Main.Position = UDim2.new(0.65, 0, 0.2, 0)
-Main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
-Main.BackgroundTransparency = 0.05
-Main.Active = true
-Main.Draggable = true
-Main.Parent = Gui
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 14)
-
-local Stroke = Instance.new("UIStroke", Main)
-Stroke.Color = Color3.fromRGB(45, 45, 55)
-Stroke.Thickness = 1.2
-
--- Header Banner
-local Header = Instance.new("Frame")
-Header.Size = UDim2.new(1, 0, 0, 50)
-Header.BackgroundTransparency = 1
-Header.Parent = Main
-
-local Icon = Instance.new("TextLabel")
-Icon.Size = UDim2.new(0, 30, 0, 30)
-Icon.Position = UDim2.new(0, 15, 0, 10)
-Icon.Text = "👑"
-Icon.TextSize = 18
-Icon.BackgroundTransparency = 1
-Icon.Parent = Header
-
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, -60, 0, 20)
-Title.Position = UDim2.new(0, 50, 0, 10)
-Title.Text = "KLO 901 | PVP"
-Title.TextColor3 = Color3.fromRGB(240, 240, 240)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 13
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.BackgroundTransparency = 1
-Title.Parent = Header
-
-local SubTitle = Instance.new("TextLabel")
-SubTitle.Size = UDim2.new(1, -60, 0, 15)
-SubTitle.Position = UDim2.new(0, 50, 0, 28)
-SubTitle.Text = "[901] - Safe Edition"
-SubTitle.TextColor3 = Color3.fromRGB(130, 130, 145)
-SubTitle.Font = Enum.Font.Gotham
-SubTitle.TextSize = 10
-SubTitle.TextXAlignment = Enum.TextXAlignment.Left
-SubTitle.BackgroundTransparency = 1
-SubTitle.Parent = Header
-
--- Search Bar
-local SearchBox = Instance.new("Frame")
-SearchBox.Size = UDim2.new(1, -26, 0, 32)
-SearchBox.Position = UDim2.new(0, 13, 0, 55)
-SearchBox.BackgroundColor3 = Color3.fromRGB(28, 28, 35)
-SearchBox.Parent = Main
-Instance.new("UICorner", SearchBox).CornerRadius = UDim.new(0, 8)
-
-local SearchIcon = Instance.new("TextLabel")
-SearchIcon.Size = UDim2.new(0, 25, 1, 0)
-SearchIcon.Position = UDim2.new(0, 8, 0, 0)
-SearchIcon.Text = "🔍"
-SearchIcon.TextSize = 11
-SearchIcon.BackgroundTransparency = 1
-SearchIcon.Parent = SearchBox
-
-local SearchInput = Instance.new("TextBox")
-SearchInput.Size = UDim2.new(1, -40, 1, 0)
-SearchInput.Position = UDim2.new(0, 33, 0, 0)
-SearchInput.PlaceholderText = "Search"
-SearchInput.PlaceholderColor3 = Color3.fromRGB(120, 120, 135)
-SearchInput.Text = ""
-SearchInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-SearchInput.Font = Enum.Font.Gotham
-SearchInput.TextSize = 11
-SearchInput.TextXAlignment = Enum.TextXAlignment.Left
-SearchInput.BackgroundTransparency = 1
-SearchInput.Parent = SearchBox
-
--- Tab Buttons Container
-local TabsContainer = Instance.new("ScrollingFrame")
-TabsContainer.Size = UDim2.new(1, -26, 1, -100)
-TabsContainer.Position = UDim2.new(0, 13, 0, 95)
-TabsContainer.BackgroundTransparency = 1
-TabsContainer.ScrollBarThickness = 2
-TabsContainer.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 70)
-TabsContainer.Parent = Main
-
-local TabList = Instance.new("UIListLayout")
-TabList.Parent = TabsContainer
-TabList.Padding = UDim.new(0, 6)
-
-local TabButtons = {}
-
-local function addTabButton(icon, name)
-    local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(1, 0, 0, 34)
-    Btn.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
-    Btn.Text = ""
-    Btn.Parent = TabsContainer
-    Instance.new("UICorner", Btn).CornerRadius = UDim.new(0, 8)
-
-    local IconLbl = Instance.new("TextLabel")
-    IconLbl.Size = UDim2.new(0, 30, 1, 0)
-    IconLbl.Position = UDim2.new(0, 10, 0, 0)
-    IconLbl.Text = icon
-    IconLbl.TextSize = 12
-    IconLbl.BackgroundTransparency = 1
-    IconLbl.Parent = Btn
-
-    local TextLbl = Instance.new("TextLabel")
-    TextLbl.Size = UDim2.new(1, -45, 1, 0)
-    TextLbl.Position = UDim2.new(0, 40, 0, 0)
-    TextLbl.Text = name
-    TextLbl.TextColor3 = Color3.fromRGB(180, 180, 195)
-    TextLbl.Font = Enum.Font.GothamMedium
-    TextLbl.TextSize = 11
-    TextLbl.TextXAlignment = Enum.TextXAlignment.Left
-    TextLbl.BackgroundTransparency = 1
-    TextLbl.Parent = Btn
-
-    Btn.MouseButton1Click:Connect(function()
-        for _, b in pairs(TabButtons) do
-            b.Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
-            b.Text.TextColor3 = Color3.fromRGB(180, 180, 195)
-        end
-        Btn.BackgroundColor3 = Color3.fromRGB(40, 40, 52)
-        TextLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end)
-
-    table.insert(TabButtons, {Frame = Btn, Text = TextLbl})
-    return Btn
-end
-
-local function createFeatureToggle(parent, titleText, default, callback)
-    local ToggleFrame = Instance.new("Frame")
-    ToggleFrame.Size = UDim2.new(1, 0, 0, 34)
-    ToggleFrame.BackgroundColor3 = Color3.fromRGB(32, 32, 42)
-    ToggleFrame.Parent = parent
-    Instance.new("UICorner", ToggleFrame).CornerRadius = UDim.new(0, 6)
-
-    local Txt = Instance.new("TextLabel")
-    Txt.Size = UDim2.new(0.7, 0, 1, 0)
-    Txt.Position = UDim2.new(0, 10, 0, 0)
-    Txt.Text = titleText
-    Txt.TextColor3 = Color3.fromRGB(220, 220, 230)
-    Txt.Font = Enum.Font.Gotham
-    Txt.TextSize = 10
-    Txt.TextXAlignment = Enum.TextXAlignment.Left
-    Txt.BackgroundTransparency = 1
-    Txt.Parent = ToggleFrame
-
-    local Switch = Instance.new("TextButton")
-    Switch.Size = UDim2.new(0, 36, 0, 18)
-    Switch.Position = UDim2.new(1, -42, 0.5, -9)
-    Switch.BackgroundColor3 = default and Color3.fromRGB(0, 180, 230) or Color3.fromRGB(50, 50, 65)
-    Switch.Text = ""
-    Switch.Parent = ToggleFrame
-    Instance.new("UICorner", Switch).CornerRadius = UDim.new(1, 0)
-
-    local state = default
-    Switch.MouseButton1Click:Connect(function()
-        state = not state
-        Switch.BackgroundColor3 = state and Color3.fromRGB(0, 180, 230) or Color3.fromRGB(50, 50, 65)
-        callback(state)
-    end)
-end
-
--- Creating UI Tabs
-addTabButton("♟️", "General")
-addTabButton("⚔️", "Combat")
-addTabButton("🎯", "Weapon Mod")
-addTabButton("🎨", "Cosmetic")
-addTabButton("👁️", "Esp")
-addTabButton("🚗", "Vehicle")
-addTabButton("⚙️", "Misc")
-addTabButton("🖥️", "Server")
-addTabButton("⚙️", "Config")
-
--- Floating Features Control
-local FeaturesWindow = Instance.new("Frame")
-FeaturesWindow.Size = UDim2.new(0, 190, 0, 180)
-FeaturesWindow.Position = UDim2.new(0, -200, 0, 50)
-FeaturesWindow.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
-FeaturesWindow.Parent = Main
-Instance.new("UICorner", FeaturesWindow).CornerRadius = UDim.new(0, 10)
-local FStroke = Instance.new("UIStroke", FeaturesWindow)
-FStroke.Color = Color3.fromRGB(45, 45, 55)
-
-local FList = Instance.new("UIListLayout")
-FList.Parent = FeaturesWindow
-FList.Padding = UDim.new(0, 6)
-
-createFeatureToggle(FeaturesWindow, "Safe Silent Aim (تصويب آمن)", Settings.SilentAim, function(s) Settings.SilentAim = s end)
-createFeatureToggle(FeaturesWindow, "Show FOV (دائرة التحديد)", Settings.ShowFOV, function(s) Settings.ShowFOV = s end)
-createFeatureToggle(FeaturesWindow, "ESP Radar (رادار الكفر)", Settings.EspEnabled, function(s) Settings.EspEnabled = s end)
+Rayfield:Notify({
+   Title = "KLO 901 Loaded!",
+   Content = "السكربت شغال بأمان تام وبدون طرد 👍",
+   Duration = 5,
+   Image = 4483362458,
+})
